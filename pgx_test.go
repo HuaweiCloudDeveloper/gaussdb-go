@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/jackc/pgx/v5"
-	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
+	_ "github.com/HuaweiCloudDeveloper/gaussdb-go/v1/stdlib"
 )
 
 func skipCockroachDB(t testing.TB, msg string) {

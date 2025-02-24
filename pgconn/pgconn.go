@@ -17,11 +17,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jackc/pgx/v5/internal/iobufpool"
-	"github.com/jackc/pgx/v5/internal/pgio"
-	"github.com/jackc/pgx/v5/pgconn/ctxwatch"
-	"github.com/jackc/pgx/v5/pgconn/internal/bgreader"
-	"github.com/jackc/pgx/v5/pgproto3"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/iobufpool"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/pgio"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn/ctxwatch"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn/internal/bgreader"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgproto3"
 )
 
 const (

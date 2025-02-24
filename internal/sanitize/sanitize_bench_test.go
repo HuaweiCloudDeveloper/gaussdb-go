@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5/internal/sanitize"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/sanitize"
 )
 
 var benchmarkSanitizeResult string

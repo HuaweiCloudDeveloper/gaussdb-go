@@ -5,7 +5,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
 )
 
 // The PostgreSQL wire protocol has a limit of 1 GB - 1 per message. See definition of

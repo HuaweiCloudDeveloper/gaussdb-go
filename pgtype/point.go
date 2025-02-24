@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jackc/pgx/v5/internal/pgio"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/pgio"
 )
 
 type Vec2 struct {

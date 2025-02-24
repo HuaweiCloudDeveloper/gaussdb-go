@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgconn/internal/bgreader"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn/internal/bgreader"
 	"github.com/stretchr/testify/require"
 )
 

@@ -1,4 +1,4 @@
-module github.com/jackc/pgx/v5
+module github.com/HuaweiCloudDeveloper/gaussdb-go/v1
 
 go 1.21
 

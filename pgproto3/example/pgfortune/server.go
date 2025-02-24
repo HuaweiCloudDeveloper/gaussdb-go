@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/jackc/pgx/v5/pgproto3"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgproto3"
 )
 
 type PgFortuneBackend struct {

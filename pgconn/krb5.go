@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/jackc/pgx/v5/pgproto3"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgproto3"
 )
 
 // NewGSSFunc creates a GSS authentication provider, for use with

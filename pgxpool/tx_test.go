@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgxpool"
 	"github.com/stretchr/testify/require"
 )
 

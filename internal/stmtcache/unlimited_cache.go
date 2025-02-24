@@ -3,7 +3,7 @@ package stmtcache
 import (
 	"math"
 
-	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn"
 )
 
 // UnlimitedCache implements Cache with no capacity limit.

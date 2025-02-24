@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jackc/pgx/v5/internal/pgio"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/pgio"
 )
 
 // CompositeIndexGetter is a type accessed by index that can be converted into a PostgreSQL composite.

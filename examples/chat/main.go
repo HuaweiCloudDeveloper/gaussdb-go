@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgxpool"
 )
 
 var pool *pgxpool.Pool

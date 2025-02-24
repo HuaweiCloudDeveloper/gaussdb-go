@@ -3,7 +3,7 @@ package pgproto3
 import (
 	"io"
 
-	"github.com/jackc/pgx/v5/internal/iobufpool"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/iobufpool"
 )
 
 // chunkReader is a io.Reader wrapper that minimizes IO reads and memory allocations. It allocates memory in chunks and

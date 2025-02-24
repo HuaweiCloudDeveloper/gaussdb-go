@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/jackc/pgx/v5/internal/pgio"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/pgio"
 )
 
 // AuthenticationSASLContinue is a message sent from the backend containing a SASL challenge.

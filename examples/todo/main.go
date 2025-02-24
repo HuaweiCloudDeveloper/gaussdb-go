@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
 )
 
 var conn *pgx.Conn
