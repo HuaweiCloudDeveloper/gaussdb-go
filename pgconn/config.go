@@ -248,7 +248,9 @@ func ParseConfigWithOptions(connString string, options ParseConfigOptions) (*Con
 	if connString != "" {
 		var err error
 		// connString may be a database URL or in PostgreSQL keyword/value format
-		if strings.HasPrefix(connString, "postgres://") || strings.HasPrefix(connString, "postgresql://") {
+		// todo 20250227
+		//if strings.HasPrefix(connString, "postgres://") || strings.HasPrefix(connString, "postgresql://") {
+		if strings.HasPrefix(connString, "gaussdb://") {
 			connStringSettings, err = parseURLSettings(connString)
 			if err != nil {
 				return nil, &ParseConfigError{ConnString: connString, msg: "failed to parse as URL", err: err}
