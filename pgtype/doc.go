@@ -79,12 +79,12 @@ pgtype uses the PostgreSQL OID to determine how to encode or decode a value. pgt
 and enum types. However, any type created in PostgreSQL with CREATE TYPE will receive a new OID. This means that the OID
 of each new PostgreSQL type must be registered for pgtype to handle values of that type with the correct Codec.
 
-The pgx.Conn LoadType method can return a *Type for array, composite, domain, and enum types by inspecting the database
+The gaussdb.Conn LoadType method can return a *Type for array, composite, domain, and enum types by inspecting the database
 metadata. This *Type can then be registered with Map.RegisterType.
 
 For example, the following function could be called after a connection is established:
 
-    func RegisterDataTypes(ctx context.Context, conn *pgx.Conn) error {
+    func RegisterDataTypes(ctx context.Context, conn *gaussdb.Conn) error {
       dataTypeNames := []string{
         "foo",
         "_foo",
@@ -182,7 +182,7 @@ internally separated.
 
 Reducing Compiled Binary Size
 
-pgx.QueryExecModeExec and pgx.QueryExecModeSimpleProtocol require the default PostgreSQL type to be registered for each
+gaussdb.QueryExecModeExec and gaussdb.QueryExecModeSimpleProtocol require the default PostgreSQL type to be registered for each
 Go type used as a query parameter. By default pgx does this for all supported types and their array variants. If an
 application does not use those query execution modes or manually registers the default PostgreSQL type for the types it
 uses as query parameters it can use the build tag nopgxregisterdefaulttypes. This omits the default type registration

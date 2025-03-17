@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	pgx "github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgxtest"
 )
 
 func TestLineTranscode(t *testing.T) {
 	ctr := defaultConnTestRunner
-	ctr.AfterConnect = func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
-		pgxtest.SkipCockroachDB(t, conn, "Server does not support type line")
+	ctr.AfterConnect = func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
+		gaussdbtest.SkipCockroachDB(t, conn, "Server does not support type line")
 
 		if _, ok := conn.TypeMap().TypeForName("line"); !ok {
 			t.Skip("Skipping due to no line type")
@@ -29,7 +29,7 @@ func TestLineTranscode(t *testing.T) {
 		}
 	}
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, ctr, nil, "line", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, ctr, nil, "line", []gaussdbtest.ValueRoundTripTest{
 		{
 			pgtype.Line{
 				A: 1.23, B: 4.56, C: 7.89012345,

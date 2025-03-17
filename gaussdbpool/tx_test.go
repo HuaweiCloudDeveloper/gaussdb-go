@@ -1,4 +1,4 @@
-package pgxpool_test
+package gaussdbpool_test
 
 import (
 	"context"
@@ -6,91 +6,90 @@ import (
 	"testing"
 	"time"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgxpool"
 	"github.com/stretchr/testify/require"
 )
 
-func TestConnExec(t *testing.T) {
+func TestTxExec(t *testing.T) {
 	t.Parallel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pool, err := pgxpool.New(ctx, os.Getenv("PGX_TEST_DATABASE"))
+	pool, err := gaussdbpool.New(ctx, os.Getenv("PGX_TEST_DATABASE"))
 	require.NoError(t, err)
 	defer pool.Close()
 
-	c, err := pool.Acquire(ctx)
+	tx, err := pool.Begin(ctx)
 	require.NoError(t, err)
-	defer c.Release()
+	defer tx.Rollback(ctx)
 
-	testExec(t, ctx, c)
+	testExec(t, ctx, tx)
 }
 
-func TestConnQuery(t *testing.T) {
+func TestTxQuery(t *testing.T) {
 	t.Parallel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pool, err := pgxpool.New(ctx, os.Getenv("PGX_TEST_DATABASE"))
+	pool, err := gaussdbpool.New(ctx, os.Getenv("PGX_TEST_DATABASE"))
 	require.NoError(t, err)
 	defer pool.Close()
 
-	c, err := pool.Acquire(ctx)
+	tx, err := pool.Begin(ctx)
 	require.NoError(t, err)
-	defer c.Release()
+	defer tx.Rollback(ctx)
 
-	testQuery(t, ctx, c)
+	testQuery(t, ctx, tx)
 }
 
-func TestConnQueryRow(t *testing.T) {
+func TestTxQueryRow(t *testing.T) {
 	t.Parallel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pool, err := pgxpool.New(ctx, os.Getenv("PGX_TEST_DATABASE"))
+	pool, err := gaussdbpool.New(ctx, os.Getenv("PGX_TEST_DATABASE"))
 	require.NoError(t, err)
 	defer pool.Close()
 
-	c, err := pool.Acquire(ctx)
+	tx, err := pool.Begin(ctx)
 	require.NoError(t, err)
-	defer c.Release()
+	defer tx.Rollback(ctx)
 
-	testQueryRow(t, ctx, c)
+	testQueryRow(t, ctx, tx)
 }
 
-func TestConnSendBatch(t *testing.T) {
+func TestTxSendBatch(t *testing.T) {
 	t.Parallel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pool, err := pgxpool.New(ctx, os.Getenv("PGX_TEST_DATABASE"))
+	pool, err := gaussdbpool.New(ctx, os.Getenv("PGX_TEST_DATABASE"))
 	require.NoError(t, err)
 	defer pool.Close()
 
-	c, err := pool.Acquire(ctx)
+	tx, err := pool.Begin(ctx)
 	require.NoError(t, err)
-	defer c.Release()
+	defer tx.Rollback(ctx)
 
-	testSendBatch(t, ctx, c)
+	testSendBatch(t, ctx, tx)
 }
 
-func TestConnCopyFrom(t *testing.T) {
+func TestTxCopyFrom(t *testing.T) {
 	t.Parallel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pool, err := pgxpool.New(ctx, os.Getenv("PGX_TEST_DATABASE"))
+	pool, err := gaussdbpool.New(ctx, os.Getenv("PGX_TEST_DATABASE"))
 	require.NoError(t, err)
 	defer pool.Close()
 
-	c, err := pool.Acquire(ctx)
+	tx, err := pool.Begin(ctx)
 	require.NoError(t, err)
-	defer c.Release()
+	defer tx.Rollback(ctx)
 
-	testCopyFrom(t, ctx, c)
+	testCopyFrom(t, ctx, tx)
 }

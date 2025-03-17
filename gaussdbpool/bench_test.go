@@ -1,17 +1,16 @@
-package pgxpool_test
+package gaussdbpool_test
 
 import (
 	"context"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbpool"
 	"os"
 	"testing"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgxpool"
 	"github.com/stretchr/testify/require"
 )
 
 func BenchmarkAcquireAndRelease(b *testing.B) {
-	pool, err := pgxpool.New(context.Background(), os.Getenv("PGX_TEST_DATABASE"))
+	pool, err := gaussdbpool.New(context.Background(), os.Getenv("PGX_TEST_DATABASE"))
 	require.NoError(b, err)
 	defer pool.Close()
 
@@ -26,15 +25,15 @@ func BenchmarkAcquireAndRelease(b *testing.B) {
 }
 
 func BenchmarkMinimalPreparedSelectBaseline(b *testing.B) {
-	config, err := pgxpool.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
+	config, err := gaussdbpool.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
 	require.NoError(b, err)
 
-	config.AfterConnect = func(ctx context.Context, c *pgx.Conn) error {
+	config.AfterConnect = func(ctx context.Context, c *gaussdb.Conn) error {
 		_, err := c.Prepare(ctx, "ps1", "select $1::int8")
 		return err
 	}
 
-	db, err := pgxpool.NewWithConfig(context.Background(), config)
+	db, err := gaussdbpool.NewWithConfig(context.Background(), config)
 	require.NoError(b, err)
 
 	conn, err := db.Acquire(context.Background())
@@ -57,15 +56,15 @@ func BenchmarkMinimalPreparedSelectBaseline(b *testing.B) {
 }
 
 func BenchmarkMinimalPreparedSelect(b *testing.B) {
-	config, err := pgxpool.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
+	config, err := gaussdbpool.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
 	require.NoError(b, err)
 
-	config.AfterConnect = func(ctx context.Context, c *pgx.Conn) error {
+	config.AfterConnect = func(ctx context.Context, c *gaussdb.Conn) error {
 		_, err := c.Prepare(ctx, "ps1", "select $1::int8")
 		return err
 	}
 
-	db, err := pgxpool.NewWithConfig(context.Background(), config)
+	db, err := gaussdbpool.NewWithConfig(context.Background(), config)
 	require.NoError(b, err)
 
 	var n int64

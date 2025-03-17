@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgxtest"
 )
 
 func isExpectedEqPath(a any) func(any) bool {
@@ -30,7 +30,7 @@ func isExpectedEqPath(a any) func(any) bool {
 func TestPathTranscode(t *testing.T) {
 	skipCockroachDB(t, "Server does not support type path")
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "path", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "path", []gaussdbtest.ValueRoundTripTest{
 		{
 			pgtype.Path{
 				P:      []pgtype.Vec2{{3.14, 1.678901234}, {7.1, 5.234}},

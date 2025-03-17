@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	pgx "github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgxtest"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,7 +18,7 @@ func (someFmtStringer) String() string {
 
 func TestTextCodec(t *testing.T) {
 	for _, pgTypeName := range []string{"text", "varchar"} {
-		pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, pgTypeName, []pgxtest.ValueRoundTripTest{
+		gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, pgTypeName, []gaussdbtest.ValueRoundTripTest{
 			{
 				pgtype.Text{String: "", Valid: true},
 				new(pgtype.Text),
@@ -47,7 +47,7 @@ func TestTextCodec(t *testing.T) {
 //
 // So this is simply a smoke test of the name type.
 func TestTextCodecName(t *testing.T) {
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "name", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "name", []gaussdbtest.ValueRoundTripTest{
 		{
 			pgtype.Text{String: "", Valid: true},
 			new(pgtype.Text),
@@ -67,7 +67,7 @@ func TestTextCodecName(t *testing.T) {
 func TestTextCodecBPChar(t *testing.T) {
 	skipCockroachDB(t, "Server does not properly handle bpchar with multi-byte character")
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "char(3)", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "char(3)", []gaussdbtest.ValueRoundTripTest{
 		{
 			pgtype.Text{String: "a  ", Valid: true},
 			new(pgtype.Text),
@@ -95,11 +95,11 @@ func TestTextCodecBPChar(t *testing.T) {
 // It only supports the text format.
 func TestTextCodecACLItem(t *testing.T) {
 	ctr := defaultConnTestRunner
-	ctr.AfterConnect = func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
-		pgxtest.SkipCockroachDB(t, conn, "Server does not support type aclitem")
+	ctr.AfterConnect = func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
+		gaussdbtest.SkipCockroachDB(t, conn, "Server does not support type aclitem")
 	}
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, ctr, nil, "aclitem", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, ctr, nil, "aclitem", []gaussdbtest.ValueRoundTripTest{
 		{
 			pgtype.Text{String: "postgres=arwdDxt/postgres", Valid: true},
 			new(pgtype.Text),
@@ -112,8 +112,8 @@ func TestTextCodecACLItem(t *testing.T) {
 
 func TestTextCodecACLItemRoleWithSpecialCharacters(t *testing.T) {
 	ctr := defaultConnTestRunner
-	ctr.AfterConnect = func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
-		pgxtest.SkipCockroachDB(t, conn, "Server does not support type aclitem")
+	ctr.AfterConnect = func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
+		gaussdbtest.SkipCockroachDB(t, conn, "Server does not support type aclitem")
 
 		// The tricky test user, below, has to actually exist so that it can be used in a test
 		// of aclitem formatting. It turns out aclitems cannot contain non-existing users/roles.
@@ -127,7 +127,7 @@ func TestTextCodecACLItemRoleWithSpecialCharacters(t *testing.T) {
 		}
 	}
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, ctr, nil, "aclitem", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, ctr, nil, "aclitem", []gaussdbtest.ValueRoundTripTest{
 		{
 			pgtype.Text{String: `postgres=arwdDxt/" tricky, ' } "" \ test user "`, Valid: true},
 			new(pgtype.Text),

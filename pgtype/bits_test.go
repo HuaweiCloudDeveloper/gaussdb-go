@@ -5,8 +5,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgxtest"
 )
 
 func isExpectedEqBits(a any) func(any) bool {
@@ -18,7 +18,7 @@ func isExpectedEqBits(a any) func(any) bool {
 }
 
 func TestBitsCodecBit(t *testing.T) {
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "bit(40)", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "bit(40)", []gaussdbtest.ValueRoundTripTest{
 		{
 			pgtype.Bits{Bytes: []byte{0, 0, 0, 0, 0}, Len: 40, Valid: true},
 			new(pgtype.Bits),
@@ -35,7 +35,7 @@ func TestBitsCodecBit(t *testing.T) {
 }
 
 func TestBitsCodecVarbit(t *testing.T) {
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "varbit", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "varbit", []gaussdbtest.ValueRoundTripTest{
 		{
 			pgtype.Bits{Bytes: []byte{}, Len: 0, Valid: true},
 			new(pgtype.Bits),

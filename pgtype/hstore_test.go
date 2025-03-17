@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgxtest"
 )
 
 func isExpectedEqMapStringString(a any) func(any) bool {
@@ -61,7 +61,7 @@ func stringPtr(s string) *string {
 
 func TestHstoreCodec(t *testing.T) {
 	ctr := defaultConnTestRunner
-	ctr.AfterConnect = func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	ctr.AfterConnect = func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		var hstoreOID uint32
 		err := conn.QueryRow(context.Background(), `select oid from pg_type where typname = 'hstore'`).Scan(&hstoreOID)
 		if err != nil {
@@ -71,7 +71,7 @@ func TestHstoreCodec(t *testing.T) {
 		conn.TypeMap().RegisterType(&pgtype.Type{Name: "hstore", OID: hstoreOID, Codec: pgtype.HstoreCodec{}})
 	}
 
-	tests := []pgxtest.ValueRoundTripTest{
+	tests := []gaussdbtest.ValueRoundTripTest{
 		{
 			map[string]string{},
 			new(map[string]string),
@@ -139,25 +139,25 @@ func TestHstoreCodec(t *testing.T) {
 		// Special key values
 
 		// at beginning
-		tests = append(tests, pgxtest.ValueRoundTripTest{
+		tests = append(tests, gaussdbtest.ValueRoundTripTest{
 			map[string]string{s + "foo": "bar"},
 			new(map[string]string),
 			isExpectedEqMapStringString(map[string]string{s + "foo": "bar"}),
 		})
 		// in middle
-		tests = append(tests, pgxtest.ValueRoundTripTest{
+		tests = append(tests, gaussdbtest.ValueRoundTripTest{
 			map[string]string{"foo" + s + "bar": "bar"},
 			new(map[string]string),
 			isExpectedEqMapStringString(map[string]string{"foo" + s + "bar": "bar"}),
 		})
 		// at end
-		tests = append(tests, pgxtest.ValueRoundTripTest{
+		tests = append(tests, gaussdbtest.ValueRoundTripTest{
 			map[string]string{"foo" + s: "bar"},
 			new(map[string]string),
 			isExpectedEqMapStringString(map[string]string{"foo" + s: "bar"}),
 		})
 		// is key
-		tests = append(tests, pgxtest.ValueRoundTripTest{
+		tests = append(tests, gaussdbtest.ValueRoundTripTest{
 			map[string]string{s: "bar"},
 			new(map[string]string),
 			isExpectedEqMapStringString(map[string]string{s: "bar"}),
@@ -166,32 +166,32 @@ func TestHstoreCodec(t *testing.T) {
 		// Special value values
 
 		// at beginning
-		tests = append(tests, pgxtest.ValueRoundTripTest{
+		tests = append(tests, gaussdbtest.ValueRoundTripTest{
 			map[string]string{"foo": s + "bar"},
 			new(map[string]string),
 			isExpectedEqMapStringString(map[string]string{"foo": s + "bar"}),
 		})
 		// in middle
-		tests = append(tests, pgxtest.ValueRoundTripTest{
+		tests = append(tests, gaussdbtest.ValueRoundTripTest{
 			map[string]string{"foo": "foo" + s + "bar"},
 			new(map[string]string),
 			isExpectedEqMapStringString(map[string]string{"foo": "foo" + s + "bar"}),
 		})
 		// at end
-		tests = append(tests, pgxtest.ValueRoundTripTest{
+		tests = append(tests, gaussdbtest.ValueRoundTripTest{
 			map[string]string{"foo": "foo" + s},
 			new(map[string]string),
 			isExpectedEqMapStringString(map[string]string{"foo": "foo" + s}),
 		})
 		// is key
-		tests = append(tests, pgxtest.ValueRoundTripTest{
+		tests = append(tests, gaussdbtest.ValueRoundTripTest{
 			map[string]string{"foo": s},
 			new(map[string]string),
 			isExpectedEqMapStringString(map[string]string{"foo": s}),
 		})
 	}
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, ctr, pgxtest.KnownOIDQueryExecModes, "hstore", tests)
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, ctr, gaussdbtest.KnownOIDQueryExecModes, "hstore", tests)
 
 	// run the tests using pgtype.Hstore as input and output types, and test all query modes
 	for i := range tests {
@@ -214,17 +214,17 @@ func TestHstoreCodec(t *testing.T) {
 			return reflect.DeepEqual(input, h)
 		}
 	}
-	pgxtest.RunValueRoundTripTests(context.Background(), t, ctr, pgxtest.AllQueryExecModes, "hstore", tests)
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, ctr, gaussdbtest.AllQueryExecModes, "hstore", tests)
 
 	// run the tests again without the codec registered: uses the text protocol
 	ctrWithoutCodec := defaultConnTestRunner
-	pgxtest.RunValueRoundTripTests(context.Background(), t, ctrWithoutCodec, pgxtest.AllQueryExecModes, "hstore", tests)
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, ctrWithoutCodec, gaussdbtest.AllQueryExecModes, "hstore", tests)
 
 	// scan empty and NULL: should be different in all query modes
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pgxtest.RunWithQueryExecModes(ctx, t, ctr, pgxtest.AllQueryExecModes, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	gaussdbtest.RunWithQueryExecModes(ctx, t, ctr, gaussdbtest.AllQueryExecModes, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		h := pgtype.Hstore{"should_be_erased": nil}
 		err := conn.QueryRow(ctx, `select cast(null as hstore)`).Scan(&h)
 		if err != nil {

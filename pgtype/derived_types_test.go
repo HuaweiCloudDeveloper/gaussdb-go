@@ -12,7 +12,7 @@ import (
 func TestDerivedTypes(t *testing.T) {
 	skipCockroachDB(t, "Server does not support composite types (see https://github.com/cockroachdb/cockroach/issues/27792)")
 
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		_, err := conn.Exec(ctx, `
 drop type if exists dt_test;
 drop domain if exists dt_uint64;
@@ -42,8 +42,8 @@ create type dt_test as (
 			name string
 			code int16
 		}{
-			{name: "TextFormat", code: pgx.TextFormatCode},
-			{name: "BinaryFormat", code: pgx.BinaryFormatCode},
+			{name: "TextFormat", code: gaussdb.TextFormatCode},
+			{name: "BinaryFormat", code: gaussdb.BinaryFormatCode},
 		}
 
 		for _, format := range formats {
@@ -51,7 +51,7 @@ create type dt_test as (
 			var b uint64
 			var c *[]uint64
 
-			row := conn.QueryRow(ctx, "select $1::dt_test", pgx.QueryResultFormats{format.code}, pgtype.CompositeFields{"hi", uint64(42), []uint64{10, 20, 30}})
+			row := conn.QueryRow(ctx, "select $1::dt_test", gaussdb.QueryResultFormats{format.code}, pgtype.CompositeFields{"hi", uint64(42), []uint64{10, 20, 30}})
 			err := row.Scan(pgtype.CompositeFields{&a, &b, &c})
 			require.NoError(t, err)
 			require.EqualValuesf(t, "hi", a, "%v", format.name)

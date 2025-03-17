@@ -1,8 +1,7 @@
-package pgxpool
+package gaussdbpool
 
 import (
 	"context"
-
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
 )
 
@@ -18,7 +17,7 @@ type AcquireTracer interface {
 type TraceAcquireStartData struct{}
 
 type TraceAcquireEndData struct {
-	Conn *pgx.Conn
+	Conn *gaussdb.Conn
 	Err  error
 }
 
@@ -29,5 +28,5 @@ type ReleaseTracer interface {
 }
 
 type TraceReleaseData struct {
-	Conn *pgx.Conn
+	Conn *gaussdb.Conn
 }

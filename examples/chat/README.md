@@ -1,7 +1,7 @@
 # Description
 
 This is a sample chat program implemented using PostgreSQL's listen/notify
-functionality with pgx.
+functionality with gaussdb.
 
 Start multiple instances of this program connected to the same database to chat
 between them.

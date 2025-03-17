@@ -6,15 +6,15 @@ import (
 	"time"
 
 	pgx "github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgxtest"
 	"github.com/stretchr/testify/require"
 )
 
 func TestTimestamptzCodec(t *testing.T) {
 	skipCockroachDB(t, "Server does not support infinite timestamps (see https://github.com/cockroachdb/cockroach/issues/41564)")
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "timestamptz", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "timestamptz", []gaussdbtest.ValueRoundTripTest{
 		{time.Date(-100, 1, 1, 0, 0, 0, 0, time.Local), new(time.Time), isExpectedEqTime(time.Date(-100, 1, 1, 0, 0, 0, 0, time.Local))},
 		{time.Date(-1, 1, 1, 0, 0, 0, 0, time.Local), new(time.Time), isExpectedEqTime(time.Date(-1, 1, 1, 0, 0, 0, 0, time.Local))},
 		{time.Date(0, 1, 1, 0, 0, 0, 0, time.Local), new(time.Time), isExpectedEqTime(time.Date(0, 1, 1, 0, 0, 0, 0, time.Local))},
@@ -42,7 +42,7 @@ func TestTimestamptzCodecWithLocationUTC(t *testing.T) {
 	skipCockroachDB(t, "Server does not support infinite timestamps (see https://github.com/cockroachdb/cockroach/issues/41564)")
 
 	connTestRunner := defaultConnTestRunner
-	connTestRunner.AfterConnect = func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	connTestRunner.AfterConnect = func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		conn.TypeMap().RegisterType(&pgtype.Type{
 			Name:  "timestamptz",
 			OID:   pgtype.TimestamptzOID,
@@ -50,7 +50,7 @@ func TestTimestamptzCodecWithLocationUTC(t *testing.T) {
 		})
 	}
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, connTestRunner, nil, "timestamptz", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, connTestRunner, nil, "timestamptz", []gaussdbtest.ValueRoundTripTest{
 		{time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC), new(time.Time), isExpectedEq(time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC))},
 	})
 }
@@ -59,7 +59,7 @@ func TestTimestamptzCodecWithLocationLocal(t *testing.T) {
 	skipCockroachDB(t, "Server does not support infinite timestamps (see https://github.com/cockroachdb/cockroach/issues/41564)")
 
 	connTestRunner := defaultConnTestRunner
-	connTestRunner.AfterConnect = func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	connTestRunner.AfterConnect = func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		conn.TypeMap().RegisterType(&pgtype.Type{
 			Name:  "timestamptz",
 			OID:   pgtype.TimestamptzOID,
@@ -67,14 +67,14 @@ func TestTimestamptzCodecWithLocationLocal(t *testing.T) {
 		})
 	}
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, connTestRunner, nil, "timestamptz", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, connTestRunner, nil, "timestamptz", []gaussdbtest.ValueRoundTripTest{
 		{time.Date(2000, 1, 1, 0, 0, 0, 0, time.Local), new(time.Time), isExpectedEq(time.Date(2000, 1, 1, 0, 0, 0, 0, time.Local))},
 	})
 }
 
 // https://github.com/jackc/pgx/v4/pgtype/pull/128
 func TestTimestamptzTranscodeBigTimeBinary(t *testing.T) {
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		in := &pgtype.Timestamptz{Time: time.Date(294276, 12, 31, 23, 59, 59, 999999000, time.UTC), Valid: true}
 		var out pgtype.Timestamptz
 

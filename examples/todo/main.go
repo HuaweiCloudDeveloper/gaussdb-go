@@ -9,11 +9,11 @@ import (
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
 )
 
-var conn *pgx.Conn
+var conn *gaussdb.Conn
 
 func main() {
 	var err error
-	conn, err = pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+	conn, err = gaussdb.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connection to database: %v\n", err)
 		os.Exit(1)

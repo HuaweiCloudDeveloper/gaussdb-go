@@ -24,7 +24,7 @@
 * Add XMLCodec supports encoding + scanning XML column type like json (nickcruess-soda)
 * Add MultiTrace (Stepan Rabotkin)
 * Add TraceLogConfig with customizable TimeKey (stringintech)
-* pgx.ErrNoRows wraps sql.ErrNoRows to aid in database/sql compatibility with native pgx functions (merlin)
+* gaussdb.ErrNoRows wraps sql.ErrNoRows to aid in database/sql compatibility with native pgx functions (merlin)
 * Support scanning binary formatted uint32 into string / TextScanner (jennifersp)
 * Fix interval encoding to allow 0s and avoid extra spaces (Carlos Pérez-Aradros Herce)
 * Update pgservicefile - fixes panic when parsing invalid file
@@ -111,7 +111,7 @@ Thanks to Paul Gerste for reporting this issue.
 # 5.5.0 (November 4, 2023)
 
 * Add CollectExactlyOneRow. (Julien GOTTELAND)
-* Add OpenDBFromPool to create *database/sql.DB from *pgxpool.Pool. (Lev Zakharov)
+* Add OpenDBFromPool to create *database/sql.DB from *gaussdbpool.Pool. (Lev Zakharov)
 * Prepare can automatically choose statement name based on sql. This makes it easier to explicitly manage prepared statements.
 * Statement cache now uses deterministic, stable statement names.
 * database/sql prepared statement names are deterministically generated.
@@ -126,7 +126,7 @@ Thanks to Paul Gerste for reporting this issue.
 
 * Fix: QCharArrayOID was defined with the wrong OID (Christoph Engelbert)
 * Fix: connect_timeout for sslmode=allow|prefer (smaher-edb)
-* Fix: pgxpool: background health check cannot overflow pool
+* Fix: gaussdbpool: background health check cannot overflow pool
 * Fix: Check for nil in defer when sending batch (recover properly from panic)
 * Fix: json scan of non-string pointer to pointer
 * Fix: zeronull.Timestamptz should use pgtype.Timestamptz
@@ -150,14 +150,14 @@ Thanks to Paul Gerste for reporting this issue.
 
 # 5.4.0 (June 14, 2023)
 
-* Replace platform specific syscalls for non-blocking IO with more traditional goroutines and deadlines. This returns to the v4 approach with some additional improvements and fixes. This restores the ability to use a pgx.Conn over an ssh.Conn as well as other non-TCP or Unix socket connections. In addition, it is a significantly simpler implementation that is less likely to have cross platform issues.
+* Replace platform specific syscalls for non-blocking IO with more traditional goroutines and deadlines. This returns to the v4 approach with some additional improvements and fixes. This restores the ability to use a gaussdb.Conn over an ssh.Conn as well as other non-TCP or Unix socket connections. In addition, it is a significantly simpler implementation that is less likely to have cross platform issues.
 * Optimization: The default type registrations are now shared among all connections. This saves about 100KB of memory per connection. `pgtype.Type` and `pgtype.Codec` values are now required to be immutable after registration. This was already necessary in most cases but wasn't documented until now. (Lev Zakharov)
-* Fix: Ensure pgxpool.Pool.QueryRow.Scan releases connection on panic
+* Fix: Ensure gaussdbpool.Pool.QueryRow.Scan releases connection on panic
 * CancelRequest: don't try to read the reply (Nicola Murino)
 * Fix: correctly handle bool type aliases (Wichert Akkerman)
 * Fix: pgconn.CancelRequest: Fix unix sockets: don't use RemoteAddr()
-* Fix: pgx.Conn memory leak with prepared statement caching (Evan Jones)
-* Add BeforeClose to pgxpool.Pool (Evan Cordell)
+* Fix: gaussdb.Conn memory leak with prepared statement caching (Evan Jones)
+* Add BeforeClose to gaussdbpool.Pool (Evan Cordell)
 * Fix: various hstore fixes and optimizations (Evan Jones)
 * Fix: RowToStructByPos with embedded unexported struct
 * Support different bool string representations (Lev Zakharov)
@@ -204,7 +204,7 @@ Thanks to Paul Gerste for reporting this issue.
 
 # 5.2.0 (December 5, 2022)
 
-* `tracelog.TraceLog` implements the pgx.PrepareTracer interface. (Vitalii Solodilov)
+* `tracelog.TraceLog` implements the gaussdb.PrepareTracer interface. (Vitalii Solodilov)
 * Optimize creating begin transaction SQL string (Petr Evdokimov and ksco)
 * `Conn.LoadType` supports range and multirange types (Vitalii Solodilov)
 * Fix scan `uint` and `uint64` `ScanNumeric`. This resolves a PostgreSQL `numeric` being incorrectly scanned into `uint` and `uint64`.
@@ -216,9 +216,9 @@ Thanks to Paul Gerste for reporting this issue.
 
 # 5.1.0 (November 12, 2022)
 
-* Update puddle to v2.1.2. This resolves a race condition and a deadlock in pgxpool.
+* Update puddle to v2.1.2. This resolves a race condition and a deadlock in gaussdbpool.
 * `QueryRewriter.RewriteQuery` now returns an error. Technically, this is a breaking change for any external implementers, but given the minimal likelihood that there are actually any external implementers this change was accepted.
-* Expose `GetSSLPassword` support to pgx.
+* Expose `GetSSLPassword` support to gaussdb.
 * Fix encode `ErrorResponse` unknown field handling. This would only affect pgproto3 being used directly as a proxy with a non-PostgreSQL server that included additional error fields.
 * Fix date text format encoding with 5 digit years.
 * Fix date values passed to a `sql.Scanner` as `string` instead of `time.Time`.
@@ -229,7 +229,7 @@ Thanks to Paul Gerste for reporting this issue.
 
 # 5.0.4 (October 24, 2022)
 
-* Fix: CollectOneRow prefers PostgreSQL error over pgx.ErrorNoRows
+* Fix: CollectOneRow prefers PostgreSQL error over gaussdb.ErrorNoRows
 * Fix: some reflect Kind checks to first check for nil
 * Bump golang.org/x/text dependency to placate snyk
 * Fix: RowToStructByPos on structs with multiple anonymous sub-structs (Baptiste Fontaine)
@@ -279,7 +279,7 @@ pgconn now supports pipeline mode.
 
 `Timeout()` no longer considers `context.Canceled` as a timeout error. `context.DeadlineExceeded` still is considered a timeout error.
 
-## pgxpool
+## gaussdbpool
 
 `Connect` and `ConnectConfig` have been renamed to `New` and `NewWithConfig` respectively. The `LazyConnect` option has been removed. Pools always lazily connect.
 

@@ -11,7 +11,7 @@ import (
 )
 
 func TestCompositeCodecTranscode(t *testing.T) {
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 
 		_, err := conn.Exec(ctx, `drop type if exists ct_test;
 
@@ -30,15 +30,15 @@ create type ct_test as (
 			name string
 			code int16
 		}{
-			{name: "TextFormat", code: pgx.TextFormatCode},
-			{name: "BinaryFormat", code: pgx.BinaryFormatCode},
+			{name: "TextFormat", code: gaussdb.TextFormatCode},
+			{name: "BinaryFormat", code: gaussdb.BinaryFormatCode},
 		}
 
 		for _, format := range formats {
 			var a string
 			var b int32
 
-			err := conn.QueryRow(ctx, "select $1::ct_test", pgx.QueryResultFormats{format.code},
+			err := conn.QueryRow(ctx, "select $1::ct_test", gaussdb.QueryResultFormats{format.code},
 				pgtype.CompositeFields{"hi", int32(42)},
 			).Scan(
 				pgtype.CompositeFields{&a, &b},
@@ -89,7 +89,7 @@ func (p *point3d) ScanIndex(i int) any {
 }
 
 func TestCompositeCodecTranscodeStruct(t *testing.T) {
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 
 		_, err := conn.Exec(ctx, `drop type if exists point3d;
 
@@ -109,14 +109,14 @@ create type point3d as (
 			name string
 			code int16
 		}{
-			{name: "TextFormat", code: pgx.TextFormatCode},
-			{name: "BinaryFormat", code: pgx.BinaryFormatCode},
+			{name: "TextFormat", code: gaussdb.TextFormatCode},
+			{name: "BinaryFormat", code: gaussdb.BinaryFormatCode},
 		}
 
 		for _, format := range formats {
 			input := point3d{X: 1, Y: 2, Z: 3}
 			var output point3d
-			err := conn.QueryRow(ctx, "select $1::point3d", pgx.QueryResultFormats{format.code}, input).Scan(&output)
+			err := conn.QueryRow(ctx, "select $1::point3d", gaussdb.QueryResultFormats{format.code}, input).Scan(&output)
 			require.NoErrorf(t, err, "%v", format.name)
 			require.Equalf(t, input, output, "%v", format.name)
 		}
@@ -124,7 +124,7 @@ create type point3d as (
 }
 
 func TestCompositeCodecTranscodeStructWrapper(t *testing.T) {
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 
 		_, err := conn.Exec(ctx, `drop type if exists point3d;
 
@@ -144,8 +144,8 @@ create type point3d as (
 			name string
 			code int16
 		}{
-			{name: "TextFormat", code: pgx.TextFormatCode},
-			{name: "BinaryFormat", code: pgx.BinaryFormatCode},
+			{name: "TextFormat", code: gaussdb.TextFormatCode},
+			{name: "BinaryFormat", code: gaussdb.BinaryFormatCode},
 		}
 
 		type anotherPoint struct {
@@ -155,7 +155,7 @@ create type point3d as (
 		for _, format := range formats {
 			input := anotherPoint{X: 1, Y: 2, Z: 3}
 			var output anotherPoint
-			err := conn.QueryRow(ctx, "select $1::point3d", pgx.QueryResultFormats{format.code}, input).Scan(&output)
+			err := conn.QueryRow(ctx, "select $1::point3d", gaussdb.QueryResultFormats{format.code}, input).Scan(&output)
 			require.NoErrorf(t, err, "%v", format.name)
 			require.Equalf(t, input, output, "%v", format.name)
 		}
@@ -163,7 +163,7 @@ create type point3d as (
 }
 
 func TestCompositeCodecDecodeValue(t *testing.T) {
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 
 		_, err := conn.Exec(ctx, `drop type if exists point3d;
 
@@ -183,12 +183,12 @@ create type point3d as (
 			name string
 			code int16
 		}{
-			{name: "TextFormat", code: pgx.TextFormatCode},
-			{name: "BinaryFormat", code: pgx.BinaryFormatCode},
+			{name: "TextFormat", code: gaussdb.TextFormatCode},
+			{name: "BinaryFormat", code: gaussdb.BinaryFormatCode},
 		}
 
 		for _, format := range formats {
-			rows, err := conn.Query(ctx, "select '(1,2,3)'::point3d", pgx.QueryResultFormats{format.code})
+			rows, err := conn.Query(ctx, "select '(1,2,3)'::point3d", gaussdb.QueryResultFormats{format.code})
 			require.NoErrorf(t, err, "%v", format.name)
 			require.True(t, rows.Next())
 			values, err := rows.Values()
@@ -208,7 +208,7 @@ create type point3d as (
 func TestCompositeCodecTranscodeStructWrapperForTable(t *testing.T) {
 	skipCockroachDB(t, "Server does not support composite types from table definitions")
 
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 
 		_, err := conn.Exec(ctx, `drop table if exists point3d;
 
@@ -228,8 +228,8 @@ create table point3d (
 			name string
 			code int16
 		}{
-			{name: "TextFormat", code: pgx.TextFormatCode},
-			{name: "BinaryFormat", code: pgx.BinaryFormatCode},
+			{name: "TextFormat", code: gaussdb.TextFormatCode},
+			{name: "BinaryFormat", code: gaussdb.BinaryFormatCode},
 		}
 
 		type anotherPoint struct {
@@ -239,7 +239,7 @@ create table point3d (
 		for _, format := range formats {
 			input := anotherPoint{X: 1, Y: 2, Z: 3}
 			var output anotherPoint
-			err := conn.QueryRow(ctx, "select $1::point3d", pgx.QueryResultFormats{format.code}, input).Scan(&output)
+			err := conn.QueryRow(ctx, "select $1::point3d", gaussdb.QueryResultFormats{format.code}, input).Scan(&output)
 			require.NoErrorf(t, err, "%v", format.name)
 			require.Equalf(t, input, output, "%v", format.name)
 		}

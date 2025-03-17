@@ -5,13 +5,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgxtest"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestIntervalCodec(t *testing.T) {
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "interval", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "interval", []gaussdbtest.ValueRoundTripTest{
 		{
 			pgtype.Interval{Microseconds: 1, Valid: true},
 			new(pgtype.Interval),

@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype/zeronull"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgxtest"
 )
 
 func isExpectedEqTimestamp(a any) func(any) bool {
@@ -19,7 +19,7 @@ func isExpectedEqTimestamp(a any) func(any) bool {
 }
 
 func TestTimestampTranscode(t *testing.T) {
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "timestamp", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "timestamp", []gaussdbtest.ValueRoundTripTest{
 		{
 			(zeronull.Timestamp)(time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)),
 			new(zeronull.Timestamp),

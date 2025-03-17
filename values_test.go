@@ -1,4 +1,4 @@
-package pgx_test
+package gaussdb_test
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgxtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,7 +23,7 @@ func TestDateTranscode(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pgxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	gaussdbtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		dates := []time.Time{
 			time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC),
 			time.Date(1000, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -65,7 +65,7 @@ func TestTimestampTzTranscode(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pgxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	gaussdbtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		inputTime := time.Date(2013, 1, 2, 3, 4, 5, 6000, time.Local)
 
 		var outputTime time.Time
@@ -88,7 +88,7 @@ func TestJSONAndJSONBTranscode(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pgxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	gaussdbtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		for _, typename := range []string{"json", "jsonb"} {
 			if _, ok := conn.TypeMap().TypeForName(typename); !ok {
 				continue // No JSON/JSONB type -- must be running against old PostgreSQL
@@ -120,7 +120,7 @@ func TestJSONAndJSONBTranscodeExtendedOnly(t *testing.T) {
 
 }
 
-func testJSONString(t testing.TB, conn *pgx.Conn, typename string) {
+func testJSONString(t testing.TB, conn *gaussdb.Conn, typename string) {
 	input := `{"key": "value"}`
 	expectedOutput := map[string]string{"key": "value"}
 	var output map[string]string
@@ -136,7 +136,7 @@ func testJSONString(t testing.TB, conn *pgx.Conn, typename string) {
 	}
 }
 
-func testJSONStringPointer(t testing.TB, conn *pgx.Conn, typename string) {
+func testJSONStringPointer(t testing.TB, conn *gaussdb.Conn, typename string) {
 	input := `{"key": "value"}`
 	expectedOutput := map[string]string{"key": "value"}
 	var output map[string]string
@@ -152,7 +152,7 @@ func testJSONStringPointer(t testing.TB, conn *pgx.Conn, typename string) {
 	}
 }
 
-func testJSONSingleLevelStringMap(t *testing.T, conn *pgx.Conn, typename string) {
+func testJSONSingleLevelStringMap(t *testing.T, conn *gaussdb.Conn, typename string) {
 	input := map[string]string{"key": "value"}
 	var output map[string]string
 	err := conn.QueryRow(context.Background(), "select $1::"+typename, input).Scan(&output)
@@ -167,7 +167,7 @@ func testJSONSingleLevelStringMap(t *testing.T, conn *pgx.Conn, typename string)
 	}
 }
 
-func testJSONNestedMap(t *testing.T, conn *pgx.Conn, typename string) {
+func testJSONNestedMap(t *testing.T, conn *gaussdb.Conn, typename string) {
 	input := map[string]any{
 		"name":      "Uncanny",
 		"stats":     map[string]any{"hp": float64(107), "maxhp": float64(150)},
@@ -186,7 +186,7 @@ func testJSONNestedMap(t *testing.T, conn *pgx.Conn, typename string) {
 	}
 }
 
-func testJSONStringArray(t *testing.T, conn *pgx.Conn, typename string) {
+func testJSONStringArray(t *testing.T, conn *gaussdb.Conn, typename string) {
 	input := []string{"foo", "bar", "baz"}
 	var output []string
 	err := conn.QueryRow(context.Background(), "select $1::"+typename, input).Scan(&output)
@@ -199,7 +199,7 @@ func testJSONStringArray(t *testing.T, conn *pgx.Conn, typename string) {
 	}
 }
 
-func testJSONInt64Array(t *testing.T, conn *pgx.Conn, typename string) {
+func testJSONInt64Array(t *testing.T, conn *gaussdb.Conn, typename string) {
 	input := []int64{1, 2, 234432}
 	var output []int64
 	err := conn.QueryRow(context.Background(), "select $1::"+typename, input).Scan(&output)
@@ -212,7 +212,7 @@ func testJSONInt64Array(t *testing.T, conn *pgx.Conn, typename string) {
 	}
 }
 
-func testJSONInt16ArrayFailureDueToOverflow(t *testing.T, conn *pgx.Conn, typename string) {
+func testJSONInt16ArrayFailureDueToOverflow(t *testing.T, conn *gaussdb.Conn, typename string) {
 	input := []int{1, 2, 234432}
 	var output []int16
 	err := conn.QueryRow(context.Background(), "select $1::"+typename, input).Scan(&output)
@@ -226,7 +226,7 @@ func testJSONInt16ArrayFailureDueToOverflow(t *testing.T, conn *pgx.Conn, typena
 	}
 }
 
-func testJSONStruct(t *testing.T, conn *pgx.Conn, typename string) {
+func testJSONStruct(t *testing.T, conn *gaussdb.Conn, typename string) {
 	type person struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
@@ -264,7 +264,7 @@ func TestInetCIDRTranscodeIPNet(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pgxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	gaussdbtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		tests := []struct {
 			sql   string
 			value *net.IPNet
@@ -318,7 +318,7 @@ func TestInetCIDRTranscodeIP(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pgxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	gaussdbtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		tests := []struct {
 			sql   string
 			value net.IP
@@ -385,7 +385,7 @@ func TestInetCIDRArrayTranscodeIPNet(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pgxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	gaussdbtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		tests := []struct {
 			sql   string
 			value []*net.IPNet
@@ -451,7 +451,7 @@ func TestInetCIDRArrayTranscodeIP(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pgxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	gaussdbtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		tests := []struct {
 			sql   string
 			value []net.IP
@@ -540,7 +540,7 @@ func TestInetCIDRTranscodeWithJustIP(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pgxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	gaussdbtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		tests := []struct {
 			sql   string
 			value string
@@ -589,7 +589,7 @@ func TestArrayDecoding(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pgxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	gaussdbtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		tests := []struct {
 			sql    string
 			query  any
@@ -708,7 +708,7 @@ func TestEmptyArrayDecoding(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pgxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	gaussdbtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		var val []string
 
 		err := conn.QueryRow(context.Background(), "select array[]::text[]").Scan(&val)
@@ -756,8 +756,8 @@ func TestPointerPointer(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pgxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
-		pgxtest.SkipCockroachDB(t, conn, "Server auto converts ints to bigint and test relies on exact types")
+	gaussdbtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
+		gaussdbtest.SkipCockroachDB(t, conn, "Server auto converts ints to bigint and test relies on exact types")
 
 		type allTypes struct {
 			s   *string
@@ -845,7 +845,7 @@ func TestPointerPointerNonZero(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pgxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	gaussdbtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		f := "foo"
 		dest := &f
 
@@ -865,7 +865,7 @@ func TestEncodeTypeRename(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pgxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	gaussdbtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		type _int int
 		inInt := _int(1)
 		var outInt _int
@@ -914,7 +914,7 @@ func TestEncodeTypeRename(t *testing.T) {
 		inBool := _bool(true)
 		var outBool _bool
 
-		// pgx.QueryExecModeExec requires all types to be registered.
+		// gaussdb.QueryExecModeExec requires all types to be registered.
 		conn.TypeMap().RegisterDefaultPgType(inInt, "int8")
 		conn.TypeMap().RegisterDefaultPgType(inInt8, "int8")
 		conn.TypeMap().RegisterDefaultPgType(inInt16, "int8")
@@ -1037,7 +1037,7 @@ func TestRowsScanNilThenScanValue(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pgxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	gaussdbtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		sql := `select null as a, null as b
 union
 select 1, 2
@@ -1078,18 +1078,18 @@ func TestScanIntoByteSlice(t *testing.T) {
 		resultFormatCode int16
 		output           []byte
 	}{
-		{"int - text", "select 42", pgx.TextFormatCode, []byte("42")},
-		{"int - binary", "select 42", pgx.BinaryFormatCode, []byte("42")},
-		{"text - text", "select 'hi'", pgx.TextFormatCode, []byte("hi")},
-		{"text - binary", "select 'hi'", pgx.BinaryFormatCode, []byte("hi")},
-		{"json - text", "select '{}'::json", pgx.TextFormatCode, []byte("{}")},
-		{"json - binary", "select '{}'::json", pgx.BinaryFormatCode, []byte("{}")},
-		{"jsonb - text", "select '{}'::jsonb", pgx.TextFormatCode, []byte("{}")},
-		{"jsonb - binary", "select '{}'::jsonb", pgx.BinaryFormatCode, []byte("{}")},
+		{"int - text", "select 42", gaussdb.TextFormatCode, []byte("42")},
+		{"int - binary", "select 42", gaussdb.BinaryFormatCode, []byte("42")},
+		{"text - text", "select 'hi'", gaussdb.TextFormatCode, []byte("hi")},
+		{"text - binary", "select 'hi'", gaussdb.BinaryFormatCode, []byte("hi")},
+		{"json - text", "select '{}'::json", gaussdb.TextFormatCode, []byte("{}")},
+		{"json - binary", "select '{}'::json", gaussdb.BinaryFormatCode, []byte("{}")},
+		{"jsonb - text", "select '{}'::jsonb", gaussdb.TextFormatCode, []byte("{}")},
+		{"jsonb - binary", "select '{}'::jsonb", gaussdb.BinaryFormatCode, []byte("{}")},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf []byte
-			err := conn.QueryRow(context.Background(), tt.sql, pgx.QueryResultFormats{tt.resultFormatCode}).Scan(&buf)
+			err := conn.QueryRow(context.Background(), tt.sql, gaussdb.QueryResultFormats{tt.resultFormatCode}).Scan(&buf)
 			require.NoError(t, err)
 			require.Equal(t, tt.output, buf)
 		})

@@ -1,4 +1,4 @@
-package pgx_test
+package gaussdb_test
 
 import (
 	"bytes"
@@ -8,16 +8,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
 	"os"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn"
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgxtest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -181,7 +181,7 @@ func TestConnQueryValuesWhenUnableToDecode(t *testing.T) {
 
 	// Note that this relies on pgtype.Record not supporting the text protocol. This seems safe as it is impossible to
 	// decode the text protocol because unlike the binary protocol there is no way to determine the OIDs of the elements.
-	rows, err := conn.Query(context.Background(), "select (array[1::oid], null)", pgx.QueryResultFormats{pgx.TextFormatCode})
+	rows, err := conn.Query(context.Background(), "select (array[1::oid], null)", gaussdb.QueryResultFormats{gaussdb.TextFormatCode})
 	require.NoError(t, err)
 	defer rows.Close()
 
@@ -225,7 +225,7 @@ func TestConnQueryArgsAndScanWithUnregisteredOID(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pgxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	gaussdbtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		tx, err := conn.Begin(ctx)
 		require.NoError(t, err)
 		defer tx.Rollback(ctx)
@@ -292,7 +292,7 @@ func TestRowsScanDoesNotAllowScanningBinaryFormatValuesIntoString(t *testing.T) 
 	conn := mustConnectString(t, os.Getenv("PGX_TEST_DATABASE"))
 	defer closeConn(t, conn)
 
-	pgxtest.SkipCockroachDB(t, conn, "Server does not support point type")
+	gaussdbtest.SkipCockroachDB(t, conn, "Server does not support point type")
 
 	var s string
 
@@ -315,7 +315,7 @@ func TestConnQueryRawValues(t *testing.T) {
 	rows, err := conn.Query(
 		context.Background(),
 		"select 'foo'::text, 'bar'::varchar, n, null, n from generate_series(1,$1) n",
-		pgx.QueryExecModeSimpleProtocol,
+		gaussdb.QueryExecModeSimpleProtocol,
 		10,
 	)
 	require.NoError(t, err)
@@ -500,7 +500,7 @@ func TestConnQueryDeferredError(t *testing.T) {
 	conn := mustConnectString(t, os.Getenv("PGX_TEST_DATABASE"))
 	defer closeConn(t, conn)
 
-	pgxtest.SkipCockroachDB(t, conn, "Server does not support deferred constraint (https://github.com/cockroachdb/cockroach/issues/31632)")
+	gaussdbtest.SkipCockroachDB(t, conn, "Server does not support deferred constraint (https://github.com/cockroachdb/cockroach/issues/31632)")
 
 	mustExec(t, conn, `create temporary table t (
 	id text primary key,
@@ -542,7 +542,7 @@ func TestConnQueryErrorWhileReturningRows(t *testing.T) {
 	conn := mustConnectString(t, os.Getenv("PGX_TEST_DATABASE"))
 	defer closeConn(t, conn)
 
-	pgxtest.SkipCockroachDB(t, conn, "Server uses numeric instead of int")
+	gaussdbtest.SkipCockroachDB(t, conn, "Server uses numeric instead of int")
 
 	for i := 0; i < 100; i++ {
 		func() {
@@ -562,7 +562,7 @@ func TestConnQueryErrorWhileReturningRows(t *testing.T) {
 			}
 
 			if _, ok := rows.Err().(*pgconn.PgError); !ok {
-				t.Fatalf("Expected pgx.PgError, got %v", rows.Err())
+				t.Fatalf("Expected gaussdb.PgError, got %v", rows.Err())
 			}
 
 			ensureConnValid(t, conn)
@@ -1018,8 +1018,8 @@ func TestQueryRowNoResults(t *testing.T) {
 
 	var n int32
 	err := conn.QueryRow(context.Background(), "select 1 where 1=0").Scan(&n)
-	if err != pgx.ErrNoRows {
-		t.Errorf("Expected pgx.ErrNoRows, got %v", err)
+	if err != gaussdb.ErrNoRows {
+		t.Errorf("Expected gaussdb.ErrNoRows, got %v", err)
 	}
 
 	ensureConnValid(t, conn)
@@ -1488,7 +1488,7 @@ func TestQueryContextErrorWhileReceivingRows(t *testing.T) {
 	conn := mustConnectString(t, os.Getenv("PGX_TEST_DATABASE"))
 	defer closeConn(t, conn)
 
-	pgxtest.SkipCockroachDB(t, conn, "Server uses numeric instead of int")
+	gaussdbtest.SkipCockroachDB(t, conn, "Server uses numeric instead of int")
 
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
@@ -1583,7 +1583,7 @@ func TestScanRow(t *testing.T) {
 
 	for resultReader.NextRow() {
 		var n int32
-		err := pgx.ScanRow(conn.TypeMap(), resultReader.FieldDescriptions(), resultReader.Values(), &n)
+		err := gaussdb.ScanRow(conn.TypeMap(), resultReader.FieldDescriptions(), resultReader.Values(), &n)
 		assert.NoError(t, err)
 		sum += n
 		rowCount++
@@ -1610,7 +1610,7 @@ func TestConnSimpleProtocol(t *testing.T) {
 		err := conn.QueryRow(
 			context.Background(),
 			"select $1::int8",
-			pgx.QueryExecModeSimpleProtocol,
+			gaussdb.QueryExecModeSimpleProtocol,
 			expected,
 		).Scan(&actual)
 		if err != nil {
@@ -1627,7 +1627,7 @@ func TestConnSimpleProtocol(t *testing.T) {
 		err := conn.QueryRow(
 			context.Background(),
 			"select $1::float8",
-			pgx.QueryExecModeSimpleProtocol,
+			gaussdb.QueryExecModeSimpleProtocol,
 			expected,
 		).Scan(&actual)
 		if err != nil {
@@ -1644,7 +1644,7 @@ func TestConnSimpleProtocol(t *testing.T) {
 		err := conn.QueryRow(
 			context.Background(),
 			"select $1::boolean",
-			pgx.QueryExecModeSimpleProtocol,
+			gaussdb.QueryExecModeSimpleProtocol,
 			expected,
 		).Scan(&actual)
 		if err != nil {
@@ -1661,7 +1661,7 @@ func TestConnSimpleProtocol(t *testing.T) {
 		err := conn.QueryRow(
 			context.Background(),
 			"select $1::bytea",
-			pgx.QueryExecModeSimpleProtocol,
+			gaussdb.QueryExecModeSimpleProtocol,
 			expected,
 		).Scan(&actual)
 		if err != nil {
@@ -1678,7 +1678,7 @@ func TestConnSimpleProtocol(t *testing.T) {
 		err := conn.QueryRow(
 			context.Background(),
 			"select $1::text",
-			pgx.QueryExecModeSimpleProtocol,
+			gaussdb.QueryExecModeSimpleProtocol,
 			expected,
 		).Scan(&actual)
 		if err != nil {
@@ -1703,7 +1703,7 @@ func TestConnSimpleProtocol(t *testing.T) {
 			err := conn.QueryRow(
 				context.Background(),
 				"select $1::text[]",
-				pgx.QueryExecModeSimpleProtocol,
+				gaussdb.QueryExecModeSimpleProtocol,
 				tt.expected,
 			).Scan(&actual)
 			assert.NoErrorf(t, err, "%d", i)
@@ -1724,7 +1724,7 @@ func TestConnSimpleProtocol(t *testing.T) {
 			err := conn.QueryRow(
 				context.Background(),
 				"select $1::smallint[]",
-				pgx.QueryExecModeSimpleProtocol,
+				gaussdb.QueryExecModeSimpleProtocol,
 				tt.expected,
 			).Scan(&actual)
 			assert.NoErrorf(t, err, "%d", i)
@@ -1745,7 +1745,7 @@ func TestConnSimpleProtocol(t *testing.T) {
 			err := conn.QueryRow(
 				context.Background(),
 				"select $1::int[]",
-				pgx.QueryExecModeSimpleProtocol,
+				gaussdb.QueryExecModeSimpleProtocol,
 				tt.expected,
 			).Scan(&actual)
 			assert.NoErrorf(t, err, "%d", i)
@@ -1766,7 +1766,7 @@ func TestConnSimpleProtocol(t *testing.T) {
 			err := conn.QueryRow(
 				context.Background(),
 				"select $1::bigint[]",
-				pgx.QueryExecModeSimpleProtocol,
+				gaussdb.QueryExecModeSimpleProtocol,
 				tt.expected,
 			).Scan(&actual)
 			assert.NoErrorf(t, err, "%d", i)
@@ -1787,7 +1787,7 @@ func TestConnSimpleProtocol(t *testing.T) {
 			err := conn.QueryRow(
 				context.Background(),
 				"select $1::bigint[]",
-				pgx.QueryExecModeSimpleProtocol,
+				gaussdb.QueryExecModeSimpleProtocol,
 				tt.expected,
 			).Scan(&actual)
 			assert.NoErrorf(t, err, "%d", i)
@@ -1808,7 +1808,7 @@ func TestConnSimpleProtocol(t *testing.T) {
 			err := conn.QueryRow(
 				context.Background(),
 				"select $1::smallint[]",
-				pgx.QueryExecModeSimpleProtocol,
+				gaussdb.QueryExecModeSimpleProtocol,
 				tt.expected,
 			).Scan(&actual)
 			assert.NoErrorf(t, err, "%d", i)
@@ -1829,7 +1829,7 @@ func TestConnSimpleProtocol(t *testing.T) {
 			err := conn.QueryRow(
 				context.Background(),
 				"select $1::bigint[]",
-				pgx.QueryExecModeSimpleProtocol,
+				gaussdb.QueryExecModeSimpleProtocol,
 				tt.expected,
 			).Scan(&actual)
 			assert.NoErrorf(t, err, "%d", i)
@@ -1850,7 +1850,7 @@ func TestConnSimpleProtocol(t *testing.T) {
 			err := conn.QueryRow(
 				context.Background(),
 				"select $1::bigint[]",
-				pgx.QueryExecModeSimpleProtocol,
+				gaussdb.QueryExecModeSimpleProtocol,
 				tt.expected,
 			).Scan(&actual)
 			assert.NoErrorf(t, err, "%d", i)
@@ -1871,7 +1871,7 @@ func TestConnSimpleProtocol(t *testing.T) {
 			err := conn.QueryRow(
 				context.Background(),
 				"select $1::bigint[]",
-				pgx.QueryExecModeSimpleProtocol,
+				gaussdb.QueryExecModeSimpleProtocol,
 				tt.expected,
 			).Scan(&actual)
 			assert.NoErrorf(t, err, "%d", i)
@@ -1892,7 +1892,7 @@ func TestConnSimpleProtocol(t *testing.T) {
 			err := conn.QueryRow(
 				context.Background(),
 				"select $1::float4[]",
-				pgx.QueryExecModeSimpleProtocol,
+				gaussdb.QueryExecModeSimpleProtocol,
 				tt.expected,
 			).Scan(&actual)
 			assert.NoErrorf(t, err, "%d", i)
@@ -1913,7 +1913,7 @@ func TestConnSimpleProtocol(t *testing.T) {
 			err := conn.QueryRow(
 				context.Background(),
 				"select $1::float8[]",
-				pgx.QueryExecModeSimpleProtocol,
+				gaussdb.QueryExecModeSimpleProtocol,
 				tt.expected,
 			).Scan(&actual)
 			assert.NoErrorf(t, err, "%d", i)
@@ -1931,7 +1931,7 @@ func TestConnSimpleProtocol(t *testing.T) {
 			err := conn.QueryRow(
 				context.Background(),
 				"select $1::circle",
-				pgx.QueryExecModeSimpleProtocol,
+				gaussdb.QueryExecModeSimpleProtocol,
 				&expected,
 			).Scan(&actual)
 			if err != nil {
@@ -1959,7 +1959,7 @@ func TestConnSimpleProtocol(t *testing.T) {
 		err := conn.QueryRow(
 			context.Background(),
 			"select $1::int8, $2::float8, $3::boolean, $4::bytea, $5::text",
-			pgx.QueryExecModeSimpleProtocol,
+			gaussdb.QueryExecModeSimpleProtocol,
 			expectedInt64, expectedFloat64, expectedBool, expectedBytes, expectedString,
 		).Scan(&actualInt64, &actualFloat64, &actualBool, &actualBytes, &actualString)
 		if err != nil {
@@ -1990,7 +1990,7 @@ func TestConnSimpleProtocol(t *testing.T) {
 		err := conn.QueryRow(
 			context.Background(),
 			"select $1",
-			pgx.QueryExecModeSimpleProtocol,
+			gaussdb.QueryExecModeSimpleProtocol,
 			expected,
 		).Scan(&actual)
 		if err != nil {
@@ -2010,7 +2010,7 @@ func TestConnSimpleProtocolRefusesNonUTF8ClientEncoding(t *testing.T) {
 	conn := mustConnectString(t, os.Getenv("PGX_TEST_DATABASE"))
 	defer closeConn(t, conn)
 
-	pgxtest.SkipCockroachDB(t, conn, "Server does not support changing client_encoding (https://www.cockroachlabs.com/docs/stable/set-vars.html)")
+	gaussdbtest.SkipCockroachDB(t, conn, "Server does not support changing client_encoding (https://www.cockroachlabs.com/docs/stable/set-vars.html)")
 
 	mustExec(t, conn, "set client_encoding to 'SQL_ASCII'")
 
@@ -2018,7 +2018,7 @@ func TestConnSimpleProtocolRefusesNonUTF8ClientEncoding(t *testing.T) {
 	err := conn.QueryRow(
 		context.Background(),
 		"select $1",
-		pgx.QueryExecModeSimpleProtocol,
+		gaussdb.QueryExecModeSimpleProtocol,
 		"test",
 	).Scan(&expected)
 	if err == nil {
@@ -2034,7 +2034,7 @@ func TestConnSimpleProtocolRefusesNonStandardConformingStrings(t *testing.T) {
 	conn := mustConnectString(t, os.Getenv("PGX_TEST_DATABASE"))
 	defer closeConn(t, conn)
 
-	pgxtest.SkipCockroachDB(t, conn, "Server does not support standard_conforming_strings = off (https://github.com/cockroachdb/cockroach/issues/36215)")
+	gaussdbtest.SkipCockroachDB(t, conn, "Server does not support standard_conforming_strings = off (https://github.com/cockroachdb/cockroach/issues/36215)")
 
 	mustExec(t, conn, "set standard_conforming_strings to off")
 
@@ -2042,7 +2042,7 @@ func TestConnSimpleProtocolRefusesNonStandardConformingStrings(t *testing.T) {
 	err := conn.QueryRow(
 		context.Background(),
 		"select $1",
-		pgx.QueryExecModeSimpleProtocol,
+		gaussdb.QueryExecModeSimpleProtocol,
 		`\'; drop table users; --`,
 	).Scan(&expected)
 	if err == nil {
@@ -2057,7 +2057,7 @@ func TestQueryErrorWithDisabledStatementCache(t *testing.T) {
 	t.Parallel()
 
 	config := mustParseConfig(t, os.Getenv("PGX_TEST_DATABASE"))
-	config.DefaultQueryExecMode = pgx.QueryExecModeDescribeExec
+	config.DefaultQueryExecMode = gaussdb.QueryExecModeDescribeExec
 	config.StatementCacheCapacity = 0
 	config.DescriptionCacheCapacity = 0
 
@@ -2094,7 +2094,7 @@ func TestConnQueryQueryExecModeCacheDescribeSafeEvenWhenTypesChange(t *testing.T
 	conn := mustConnectString(t, os.Getenv("PGX_TEST_DATABASE"))
 	defer closeConn(t, conn)
 
-	pgxtest.SkipCockroachDB(t, conn, "Server does not support alter column type from int to float4")
+	gaussdbtest.SkipCockroachDB(t, conn, "Server does not support alter column type from int to float4")
 
 	_, err := conn.Exec(ctx, `create temporary table to_change (
 	name text primary key,
@@ -2106,7 +2106,7 @@ insert into to_change (name, age) values ('John', 42);`)
 
 	var name string
 	var ageInt32 int32
-	err = conn.QueryRow(ctx, "select * from to_change where age = $1", pgx.QueryExecModeCacheDescribe, int32(42)).Scan(&name, &ageInt32)
+	err = conn.QueryRow(ctx, "select * from to_change where age = $1", gaussdb.QueryExecModeCacheDescribe, int32(42)).Scan(&name, &ageInt32)
 	require.NoError(t, err)
 	require.Equal(t, "John", name)
 	require.Equal(t, int32(42), ageInt32)
@@ -2114,13 +2114,13 @@ insert into to_change (name, age) values ('John', 42);`)
 	_, err = conn.Exec(ctx, `alter table to_change alter column age type float4;`)
 	require.NoError(t, err)
 
-	err = conn.QueryRow(ctx, "select * from to_change where age = $1", pgx.QueryExecModeCacheDescribe, int32(42)).Scan(&name, &ageInt32)
+	err = conn.QueryRow(ctx, "select * from to_change where age = $1", gaussdb.QueryExecModeCacheDescribe, int32(42)).Scan(&name, &ageInt32)
 	require.NoError(t, err)
 	require.Equal(t, "John", name)
 	require.Equal(t, int32(42), ageInt32)
 
 	var ageFloat32 float32
-	err = conn.QueryRow(ctx, "select * from to_change where age = $1", pgx.QueryExecModeCacheDescribe, int32(42)).Scan(&name, &ageFloat32)
+	err = conn.QueryRow(ctx, "select * from to_change where age = $1", gaussdb.QueryExecModeCacheDescribe, int32(42)).Scan(&name, &ageFloat32)
 	require.NoError(t, err)
 	require.Equal(t, "John", name)
 	require.Equal(t, float32(42), ageFloat32)
@@ -2129,18 +2129,18 @@ insert into to_change (name, age) values ('John', 42);`)
 	require.NoError(t, err)
 
 	// Number of result columns has changed, so just like with a prepared statement, this will fail the first time.
-	err = conn.QueryRow(ctx, "select * from to_change where age = $1", pgx.QueryExecModeCacheDescribe, int32(42)).Scan(&ageFloat32)
+	err = conn.QueryRow(ctx, "select * from to_change where age = $1", gaussdb.QueryExecModeCacheDescribe, int32(42)).Scan(&ageFloat32)
 	require.EqualError(t, err, "ERROR: bind message has 2 result formats but query has 1 columns (SQLSTATE 08P01)")
 
 	// But it will work the second time after the cache is invalidated.
-	err = conn.QueryRow(ctx, "select * from to_change where age = $1", pgx.QueryExecModeCacheDescribe, int32(42)).Scan(&ageFloat32)
+	err = conn.QueryRow(ctx, "select * from to_change where age = $1", gaussdb.QueryExecModeCacheDescribe, int32(42)).Scan(&ageFloat32)
 	require.NoError(t, err)
 	require.Equal(t, float32(42), ageFloat32)
 
 	_, err = conn.Exec(ctx, `alter table to_change alter column age type numeric;`)
 	require.NoError(t, err)
 
-	err = conn.QueryRow(ctx, "select * from to_change where age = $1", pgx.QueryExecModeCacheDescribe, int32(42)).Scan(&ageFloat32)
+	err = conn.QueryRow(ctx, "select * from to_change where age = $1", gaussdb.QueryExecModeCacheDescribe, int32(42)).Scan(&ageFloat32)
 	require.NoError(t, err)
 	require.Equal(t, float32(42), ageFloat32)
 }
@@ -2151,7 +2151,7 @@ func TestQueryWithQueryRewriter(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pgxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	gaussdbtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		qr := testQueryRewriter{sql: "select $1::int", args: []any{42}}
 		rows, err := conn.Query(ctx, "should be replaced", &qr)
 		require.NoError(t, err)
@@ -2174,7 +2174,7 @@ func ExampleConn_Query() {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	conn, err := pgx.Connect(ctx, os.Getenv("PGX_TEST_DATABASE"))
+	conn, err := gaussdb.Connect(ctx, os.Getenv("PGX_TEST_DATABASE"))
 	if err != nil {
 		fmt.Printf("Unable to establish connection: %v", err)
 		return

@@ -472,7 +472,7 @@ func TestConnectWithRuntimeParams(t *testing.T) {
 	require.NoError(t, err)
 
 	config.RuntimeParams = map[string]string{
-		"application_name": "pgxtest",
+		"application_name": "gaussdbtest",
 		"search_path":      "myschema",
 	}
 
@@ -483,7 +483,7 @@ func TestConnectWithRuntimeParams(t *testing.T) {
 	result := conn.ExecParams(ctx, "show application_name", nil, nil, nil, nil).Read()
 	require.Nil(t, result.Err)
 	assert.Equal(t, 1, len(result.Rows))
-	assert.Equal(t, "pgxtest", string(result.Rows[0][0]))
+	assert.Equal(t, "gaussdbtest", string(result.Rows[0][0]))
 
 	result = conn.ExecParams(ctx, "show search_path", nil, nil, nil, nil).Read()
 	require.Nil(t, result.Err)
@@ -2015,14 +2015,14 @@ func TestConnCopyFromBinary(t *testing.T) {
 
 		// Length of element for column `a int4`
 		buf = pgio.AppendInt32(buf, 4)
-		buf, err = pgtype.NewMap().Encode(pgtype.Int4OID, pgx.BinaryFormatCode, a, buf)
+		buf, err = pgtype.NewMap().Encode(pgtype.Int4OID, gaussdb.BinaryFormatCode, a, buf)
 		require.NoError(t, err)
 
 		b := "foo " + strconv.Itoa(a) + " bar"
 		lenB := int32(len([]byte(b)))
 		// Length of element for column `b varchar`
 		buf = pgio.AppendInt32(buf, lenB)
-		buf, err = pgtype.NewMap().Encode(pgtype.VarcharOID, pgx.BinaryFormatCode, b, buf)
+		buf, err = pgtype.NewMap().Encode(pgtype.VarcharOID, gaussdb.BinaryFormatCode, b, buf)
 		require.NoError(t, err)
 
 		inputRows = append(inputRows, [][]byte{[]byte(strconv.Itoa(a)), []byte(b)})

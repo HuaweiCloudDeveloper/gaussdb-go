@@ -24,7 +24,7 @@ func Example_childRecords() {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	conn, err := pgx.Connect(ctx, os.Getenv("PGX_TEST_DATABASE"))
+	conn, err := gaussdb.Connect(ctx, os.Getenv("PGX_TEST_DATABASE"))
 	if err != nil {
 		fmt.Printf("Unable to establish connection: %v", err)
 		return
@@ -78,7 +78,7 @@ select t.name,
 from teams t
 order by t.name
 `)
-	teams, err := pgx.CollectRows(rows, pgx.RowToStructByPos[Team])
+	teams, err := gaussdb.CollectRows(rows, gaussdb.RowToStructByPos[Team])
 	if err != nil {
 		fmt.Printf("CollectRows error: %v", err)
 		return

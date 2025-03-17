@@ -1,59 +1,59 @@
-package pgx_test
+package gaussdb_test
 
 import (
 	"context"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgxtest"
 	"github.com/stretchr/testify/require"
 )
 
-var defaultConnTestRunner pgxtest.ConnTestRunner
+var defaultConnTestRunner gaussdbtest.ConnTestRunner
 
 func init() {
-	defaultConnTestRunner = pgxtest.DefaultConnTestRunner()
-	defaultConnTestRunner.CreateConfig = func(ctx context.Context, t testing.TB) *pgx.ConnConfig {
-		config, err := pgx.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
+	defaultConnTestRunner = gaussdbtest.DefaultConnTestRunner()
+	defaultConnTestRunner.CreateConfig = func(ctx context.Context, t testing.TB) *gaussdb.ConnConfig {
+		config, err := gaussdb.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
 		require.NoError(t, err)
 		return config
 	}
 }
 
-func mustConnectString(t testing.TB, connString string) *pgx.Conn {
-	conn, err := pgx.Connect(context.Background(), connString)
+func mustConnectString(t testing.TB, connString string) *gaussdb.Conn {
+	conn, err := gaussdb.Connect(context.Background(), connString)
 	if err != nil {
 		t.Fatalf("Unable to establish connection: %v", err)
 	}
 	return conn
 }
 
-func mustParseConfig(t testing.TB, connString string) *pgx.ConnConfig {
-	config, err := pgx.ParseConfig(connString)
+func mustParseConfig(t testing.TB, connString string) *gaussdb.ConnConfig {
+	config, err := gaussdb.ParseConfig(connString)
 	require.Nil(t, err)
 	return config
 }
 
-func mustConnect(t testing.TB, config *pgx.ConnConfig) *pgx.Conn {
-	conn, err := pgx.ConnectConfig(context.Background(), config)
+func mustConnect(t testing.TB, config *gaussdb.ConnConfig) *gaussdb.Conn {
+	conn, err := gaussdb.ConnectConfig(context.Background(), config)
 	if err != nil {
 		t.Fatalf("Unable to establish connection: %v", err)
 	}
 	return conn
 }
 
-func closeConn(t testing.TB, conn *pgx.Conn) {
+func closeConn(t testing.TB, conn *gaussdb.Conn) {
 	err := conn.Close(context.Background())
 	if err != nil {
 		t.Fatalf("conn.Close unexpectedly failed: %v", err)
 	}
 }
 
-func mustExec(t testing.TB, conn *pgx.Conn, sql string, arguments ...any) (commandTag pgconn.CommandTag) {
+func mustExec(t testing.TB, conn *gaussdb.Conn, sql string, arguments ...any) (commandTag pgconn.CommandTag) {
 	var err error
 	if commandTag, err = conn.Exec(context.Background(), sql, arguments...); err != nil {
 		t.Fatalf("Exec unexpectedly failed with %v: %v", sql, err)
@@ -62,7 +62,7 @@ func mustExec(t testing.TB, conn *pgx.Conn, sql string, arguments ...any) (comma
 }
 
 // Do a simple query to ensure the connection is still usable
-func ensureConnValid(t testing.TB, conn *pgx.Conn) {
+func ensureConnValid(t testing.TB, conn *gaussdb.Conn) {
 	var sum, rowCount int32
 
 	rows, err := conn.Query(context.Background(), "select generate_series(1,$1)", 10)
@@ -90,7 +90,7 @@ func ensureConnValid(t testing.TB, conn *pgx.Conn) {
 	}
 }
 
-func assertConfigsEqual(t *testing.T, expected, actual *pgx.ConnConfig, testName string) {
+func assertConfigsEqual(t *testing.T, expected, actual *gaussdb.ConnConfig, testName string) {
 	if !assert.NotNil(t, expected) {
 		return
 	}

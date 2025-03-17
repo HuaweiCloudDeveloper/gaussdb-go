@@ -15,19 +15,19 @@ import (
 	"testing"
 
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgxtest"
 	_ "github.com/HuaweiCloudDeveloper/gaussdb-go/v1/stdlib"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-var defaultConnTestRunner pgxtest.ConnTestRunner
+var defaultConnTestRunner gaussdbtest.ConnTestRunner
 
 func init() {
-	defaultConnTestRunner = pgxtest.DefaultConnTestRunner()
-	defaultConnTestRunner.CreateConfig = func(ctx context.Context, t testing.TB) *pgx.ConnConfig {
-		config, err := pgx.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
+	defaultConnTestRunner = gaussdbtest.DefaultConnTestRunner()
+	defaultConnTestRunner.CreateConfig = func(ctx context.Context, t testing.TB) *gaussdb.ConnConfig {
+		config, err := gaussdb.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
 		require.NoError(t, err)
 		return config
 	}
@@ -85,7 +85,7 @@ func mustParseMacaddr(t testing.TB, s string) net.HardwareAddr {
 }
 
 func skipCockroachDB(t testing.TB, msg string) {
-	conn, err := pgx.Connect(context.Background(), os.Getenv("PGX_TEST_DATABASE"))
+	conn, err := gaussdb.Connect(context.Background(), os.Getenv("PGX_TEST_DATABASE"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,7 +97,7 @@ func skipCockroachDB(t testing.TB, msg string) {
 }
 
 func skipPostgreSQLVersionLessThan(t testing.TB, minVersion int64) {
-	conn, err := pgx.Connect(context.Background(), os.Getenv("PGX_TEST_DATABASE"))
+	conn, err := gaussdb.Connect(context.Background(), os.Getenv("PGX_TEST_DATABASE"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -135,14 +135,14 @@ func (f driverValuerFunc) Value() (driver.Value, error) {
 func TestMapScanNilIsNoOp(t *testing.T) {
 	m := pgtype.NewMap()
 
-	err := m.Scan(pgtype.TextOID, pgx.TextFormatCode, []byte("foo"), nil)
+	err := m.Scan(pgtype.TextOID, gaussdb.TextFormatCode, []byte("foo"), nil)
 	assert.NoError(t, err)
 }
 
 func TestMapScanTextFormatInterfacePtr(t *testing.T) {
 	m := pgtype.NewMap()
 	var got any
-	err := m.Scan(pgtype.TextOID, pgx.TextFormatCode, []byte("foo"), &got)
+	err := m.Scan(pgtype.TextOID, gaussdb.TextFormatCode, []byte("foo"), &got)
 	require.NoError(t, err)
 	assert.Equal(t, "foo", got)
 }
@@ -150,7 +150,7 @@ func TestMapScanTextFormatInterfacePtr(t *testing.T) {
 func TestMapScanTextFormatNonByteaIntoByteSlice(t *testing.T) {
 	m := pgtype.NewMap()
 	var got []byte
-	err := m.Scan(pgtype.JSONBOID, pgx.TextFormatCode, []byte("{}"), &got)
+	err := m.Scan(pgtype.JSONBOID, gaussdb.TextFormatCode, []byte("{}"), &got)
 	require.NoError(t, err)
 	assert.Equal(t, []byte("{}"), got)
 }
@@ -158,7 +158,7 @@ func TestMapScanTextFormatNonByteaIntoByteSlice(t *testing.T) {
 func TestMapScanBinaryFormatInterfacePtr(t *testing.T) {
 	m := pgtype.NewMap()
 	var got any
-	err := m.Scan(pgtype.TextOID, pgx.BinaryFormatCode, []byte("foo"), &got)
+	err := m.Scan(pgtype.TextOID, gaussdb.BinaryFormatCode, []byte("foo"), &got)
 	require.NoError(t, err)
 	assert.Equal(t, "foo", got)
 }
@@ -169,22 +169,22 @@ func TestMapScanUnknownOIDToStringsAndBytes(t *testing.T) {
 	m := pgtype.NewMap()
 
 	var s string
-	err := m.Scan(unknownOID, pgx.TextFormatCode, srcBuf, &s)
+	err := m.Scan(unknownOID, gaussdb.TextFormatCode, srcBuf, &s)
 	assert.NoError(t, err)
 	assert.Equal(t, "foo", s)
 
 	var rs _string
-	err = m.Scan(unknownOID, pgx.TextFormatCode, srcBuf, &rs)
+	err = m.Scan(unknownOID, gaussdb.TextFormatCode, srcBuf, &rs)
 	assert.NoError(t, err)
 	assert.Equal(t, "foo", string(rs))
 
 	var b []byte
-	err = m.Scan(unknownOID, pgx.TextFormatCode, srcBuf, &b)
+	err = m.Scan(unknownOID, gaussdb.TextFormatCode, srcBuf, &b)
 	assert.NoError(t, err)
 	assert.Equal(t, []byte("foo"), b)
 
 	var rb _byteSlice
-	err = m.Scan(unknownOID, pgx.TextFormatCode, srcBuf, &rb)
+	err = m.Scan(unknownOID, gaussdb.TextFormatCode, srcBuf, &rb)
 	assert.NoError(t, err)
 	assert.Equal(t, []byte("foo"), []byte(rb))
 }
@@ -194,7 +194,7 @@ func TestMapScanPointerToNilStructDoesNotCrash(t *testing.T) {
 
 	type myStruct struct{}
 	var p *myStruct
-	err := m.Scan(0, pgx.TextFormatCode, []byte("(foo,bar)"), &p)
+	err := m.Scan(0, gaussdb.TextFormatCode, []byte("(foo,bar)"), &p)
 	require.NotNil(t, err)
 }
 
@@ -202,7 +202,7 @@ func TestMapScanUnknownOIDTextFormat(t *testing.T) {
 	m := pgtype.NewMap()
 
 	var n int32
-	err := m.Scan(0, pgx.TextFormatCode, []byte("123"), &n)
+	err := m.Scan(0, gaussdb.TextFormatCode, []byte("123"), &n)
 	assert.NoError(t, err)
 	assert.EqualValues(t, 123, n)
 }
@@ -211,7 +211,7 @@ func TestMapScanUnknownOIDIntoSQLScanner(t *testing.T) {
 	m := pgtype.NewMap()
 
 	var s sql.NullString
-	err := m.Scan(0, pgx.TextFormatCode, []byte(nil), &s)
+	err := m.Scan(0, gaussdb.TextFormatCode, []byte(nil), &s)
 	assert.NoError(t, err)
 	assert.Equal(t, "", s.String)
 	assert.False(t, s.Valid)
@@ -229,7 +229,7 @@ func TestMapScanUnregisteredOIDIntoRenamedStringSQLScanner(t *testing.T) {
 	m := pgtype.NewMap()
 
 	var s scannerString
-	err := m.Scan(unregisteredOID, pgx.TextFormatCode, []byte(nil), &s)
+	err := m.Scan(unregisteredOID, gaussdb.TextFormatCode, []byte(nil), &s)
 	assert.NoError(t, err)
 	assert.Equal(t, "scanned", string(s))
 }
@@ -434,7 +434,7 @@ func TestMapScanPointerToRenamedType(t *testing.T) {
 	m := pgtype.NewMap()
 
 	var rs *_string
-	err := m.Scan(pgtype.TextOID, pgx.TextFormatCode, srcBuf, &rs)
+	err := m.Scan(pgtype.TextOID, gaussdb.TextFormatCode, srcBuf, &rs)
 	assert.NoError(t, err)
 	require.NotNil(t, rs)
 	assert.Equal(t, "foo", string(*rs))
@@ -445,12 +445,12 @@ func TestMapScanNullToWrongType(t *testing.T) {
 	m := pgtype.NewMap()
 
 	var n *int32
-	err := m.Scan(pgtype.TextOID, pgx.TextFormatCode, nil, &n)
+	err := m.Scan(pgtype.TextOID, gaussdb.TextFormatCode, nil, &n)
 	assert.NoError(t, err)
 	assert.Nil(t, n)
 
 	var pn pgtype.Int4
-	err = m.Scan(pgtype.TextOID, pgx.TextFormatCode, nil, &pn)
+	err = m.Scan(pgtype.TextOID, gaussdb.TextFormatCode, nil, &pn)
 	assert.NoError(t, err)
 	assert.False(t, pn.Valid)
 }
@@ -458,7 +458,7 @@ func TestMapScanNullToWrongType(t *testing.T) {
 func TestScanToSliceOfRenamedUint8(t *testing.T) {
 	m := pgtype.NewMap()
 	var ruint8 []_uint8
-	err := m.Scan(pgtype.Int2ArrayOID, pgx.TextFormatCode, []byte("{2,4}"), &ruint8)
+	err := m.Scan(pgtype.Int2ArrayOID, gaussdb.TextFormatCode, []byte("{2,4}"), &ruint8)
 	assert.NoError(t, err)
 	assert.Equal(t, []_uint8{2, 4}, ruint8)
 }
@@ -488,7 +488,7 @@ func TestMapScanTextToBool(t *testing.T) {
 			m := pgtype.NewMap()
 
 			var v bool
-			err := m.Scan(pgtype.BoolOID, pgx.TextFormatCode, tt.src, &v)
+			err := m.Scan(pgtype.BoolOID, gaussdb.TextFormatCode, tt.src, &v)
 			require.NoError(t, err)
 			assert.Equal(t, tt.want, v)
 		})
@@ -511,7 +511,7 @@ func TestMapScanTextToBoolError(t *testing.T) {
 			m := pgtype.NewMap()
 
 			var v bool
-			err := m.Scan(pgtype.BoolOID, pgx.TextFormatCode, tt.src, &v)
+			err := m.Scan(pgtype.BoolOID, gaussdb.TextFormatCode, tt.src, &v)
 			require.ErrorContains(t, err, tt.want)
 		})
 	}

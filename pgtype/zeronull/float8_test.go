@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype/zeronull"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgxtest"
 )
 
 func isExpectedEq(a any) func(any) bool {
@@ -15,7 +15,7 @@ func isExpectedEq(a any) func(any) bool {
 }
 
 func TestFloat8Transcode(t *testing.T) {
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "float8", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "float8", []gaussdbtest.ValueRoundTripTest{
 		{
 			(zeronull.Float8)(1),
 			new(zeronull.Float8),

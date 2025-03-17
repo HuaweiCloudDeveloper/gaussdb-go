@@ -1,11 +1,11 @@
-package pgx_test
+package gaussdb_test
 
 import (
 	"context"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
 	"os"
 	"testing"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -17,7 +17,7 @@ func TestPgbouncerStatementCacheDescribe(t *testing.T) {
 	}
 
 	config := mustParseConfig(t, connString)
-	config.DefaultQueryExecMode = pgx.QueryExecModeCacheDescribe
+	config.DefaultQueryExecMode = gaussdb.QueryExecModeCacheDescribe
 	config.DescriptionCacheCapacity = 1024
 
 	testPgbouncer(t, config, 10, 100)
@@ -30,18 +30,18 @@ func TestPgbouncerSimpleProtocol(t *testing.T) {
 	}
 
 	config := mustParseConfig(t, connString)
-	config.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+	config.DefaultQueryExecMode = gaussdb.QueryExecModeSimpleProtocol
 
 	testPgbouncer(t, config, 10, 100)
 }
 
-func testPgbouncer(t *testing.T, config *pgx.ConnConfig, workers, iterations int) {
+func testPgbouncer(t *testing.T, config *gaussdb.ConnConfig, workers, iterations int) {
 	doneChan := make(chan struct{})
 
 	for i := 0; i < workers; i++ {
 		go func() {
 			defer func() { doneChan <- struct{}{} }()
-			conn, err := pgx.ConnectConfig(context.Background(), config)
+			conn, err := gaussdb.ConnectConfig(context.Background(), config)
 			require.Nil(t, err)
 			defer closeConn(t, conn)
 

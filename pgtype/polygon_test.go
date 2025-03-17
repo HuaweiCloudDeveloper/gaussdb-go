@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgxtest"
 )
 
 func isExpectedEqPolygon(a any) func(any) bool {
@@ -30,7 +30,7 @@ func isExpectedEqPolygon(a any) func(any) bool {
 func TestPolygonTranscode(t *testing.T) {
 	skipCockroachDB(t, "Server does not support type polygon")
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "polygon", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "polygon", []gaussdbtest.ValueRoundTripTest{
 		{
 			pgtype.Polygon{
 				P:     []pgtype.Vec2{{3.14, 1.678901234}, {7.1, 5.234}, {5.0, 3.234}},
