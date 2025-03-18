@@ -7,7 +7,7 @@ import (
 	"errors"
 	"math"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/pgio"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/pgio"
 )
 
 type ParameterDescription struct {

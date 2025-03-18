@@ -6,7 +6,7 @@ import (
 	"io"
 	"reflect"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgproto3"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgproto3"
 )
 
 type Step interface {

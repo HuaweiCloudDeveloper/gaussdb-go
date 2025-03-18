@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/pgio"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/pgio"
 )
 
 // AuthenticationOk is a message sent from the backend indicating that authentication was successful.

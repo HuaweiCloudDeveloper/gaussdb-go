@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbpool"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbpool"
 )
 
 var db *gaussdbpool.Pool

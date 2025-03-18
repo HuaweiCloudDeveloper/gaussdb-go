@@ -5,7 +5,7 @@ import (
 	"math"
 	"testing"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
 )
 
 func TestQcharTranscode(t *testing.T) {

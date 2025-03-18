@@ -81,10 +81,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbpool"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbpool"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 // Only intrinsic types should be binary format with database/sql.

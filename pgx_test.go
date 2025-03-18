@@ -2,11 +2,11 @@ package gaussdb_test
 
 import (
 	"context"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
 	"os"
 	"testing"
 
-	_ "github.com/HuaweiCloudDeveloper/gaussdb-go/v1/stdlib"
+	_ "github.com/HuaweiCloudDeveloper/gaussdb-go/stdlib"
 )
 
 func skipCockroachDB(t testing.TB, msg string) {

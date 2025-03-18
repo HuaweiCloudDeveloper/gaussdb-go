@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/sanitize"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/sanitize"
 )
 
 func FuzzQuoteString(f *testing.F) {

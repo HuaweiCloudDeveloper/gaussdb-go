@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

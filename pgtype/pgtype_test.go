@@ -14,10 +14,10 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
-	_ "github.com/HuaweiCloudDeveloper/gaussdb-go/v1/stdlib"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
+	_ "github.com/HuaweiCloudDeveloper/gaussdb-go/stdlib"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype/zeronull"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype/zeronull"
 )
 
 func TestTextTranscode(t *testing.T) {

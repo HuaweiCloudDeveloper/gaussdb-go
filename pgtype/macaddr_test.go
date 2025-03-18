@@ -6,7 +6,7 @@ import (
 	"net"
 	"testing"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
 )
 
 func isExpectedEqHardwareAddr(a any) func(any) bool {

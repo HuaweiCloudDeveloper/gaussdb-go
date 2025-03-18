@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/sanitize"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/sanitize"
 )
 
 var benchmarkSanitizeResult string

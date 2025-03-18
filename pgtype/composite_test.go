@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	pgx "github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
+	pgx "github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 	"github.com/stretchr/testify/require"
 )
 

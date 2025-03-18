@@ -3,7 +3,7 @@ package iobufpool_test
 import (
 	"testing"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/iobufpool"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/iobufpool"
 	"github.com/stretchr/testify/assert"
 )
 

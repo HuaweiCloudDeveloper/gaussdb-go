@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 type Timestamptz time.Time

@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
 
 	"github.com/stretchr/testify/require"
 )

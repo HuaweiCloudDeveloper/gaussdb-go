@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
 	"os"
 	"testing"
 	"time"
@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
 )
 
 type testRowScanner struct {

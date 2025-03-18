@@ -17,8 +17,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn/ctxwatch"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgproto3"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn/ctxwatch"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgproto3"
 	"github.com/jackc/pgpassfile"
 	"github.com/jackc/pgservicefile"
 )

@@ -2,14 +2,14 @@ package gaussdb_test
 
 import (
 	"context"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
 	"io"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
 )
 
 func TestLargeObjects(t *testing.T) {

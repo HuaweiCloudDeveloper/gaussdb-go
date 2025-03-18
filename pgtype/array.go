@@ -9,7 +9,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/pgio"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/pgio"
 )
 
 // Information on the internals of PostgreSQL arrays can be found in

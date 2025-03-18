@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbpool"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/multitracer"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbpool"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/multitracer"
 	"github.com/stretchr/testify/require"
 )
 

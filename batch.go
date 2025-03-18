@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
 )
 
 // QueuedQuery is a query that has been queued for execution via a Batch.

@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
 )
 
 var AllQueryExecModes = []gaussdb.QueryExecMode{

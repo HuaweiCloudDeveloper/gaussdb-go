@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 // Point represents a point that may be null.

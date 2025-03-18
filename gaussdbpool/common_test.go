@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbpool"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbpool"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

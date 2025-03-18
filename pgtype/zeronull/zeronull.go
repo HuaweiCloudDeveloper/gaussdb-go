@@ -1,7 +1,7 @@
 package zeronull
 
 import (
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 // Register registers the zeronull types so they can be used in query exec modes that do not know the server OIDs.

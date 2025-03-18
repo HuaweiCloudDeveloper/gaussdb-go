@@ -2,7 +2,7 @@ package gaussdb_test
 
 import (
 	"context"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
 	"os"
 	"testing"
 

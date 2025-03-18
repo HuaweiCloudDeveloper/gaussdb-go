@@ -3,7 +3,7 @@ package gaussdbpool
 import (
 	"context"
 	"fmt"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
 	"math/rand"
 	"runtime"
 	"strconv"
@@ -11,7 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
 	"github.com/jackc/puddle/v2"
 )
 

@@ -3,7 +3,7 @@ package gaussdb
 import (
 	"context"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
 )
 
 // QueryTracer traces Query, QueryRow, and Exec.

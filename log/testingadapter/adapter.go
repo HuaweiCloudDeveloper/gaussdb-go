@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/tracelog"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/tracelog"
 )
 
 // TestingLogger interface defines the subset of testing.TB methods used by this

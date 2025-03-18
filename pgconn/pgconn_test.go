@@ -20,13 +20,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/pgio"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/pgmock"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn/ctxwatch"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgproto3"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/pgio"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/pgmock"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn/ctxwatch"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgproto3"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 const pgbouncerConnStringEnvVar = "PGX_TEST_PGBOUNCER_CONN_STRING"

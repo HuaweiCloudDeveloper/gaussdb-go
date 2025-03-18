@@ -1,4 +1,4 @@
-[![Go Reference](https://pkg.go.dev/badge/github.com/HuaweiCloudDeveloper/gaussdb-go/v1.svg)](https://pkg.go.dev/github.com/HuaweiCloudDeveloper/gaussdb-go/v1)
+[![Go Reference](https://pkg.go.dev/badge/github.com/HuaweiCloudDeveloper/gaussdb-go.svg)](https://pkg.go.dev/github.com/HuaweiCloudDeveloper/gaussdb-go)
 [![Build Status](https://github.com/jackc/pgx/actions/workflows/ci.yml/badge.svg)](https://github.com/jackc/pgx/actions/workflows/ci.yml)
 
 # pgx - PostgreSQL Driver and Toolkit
@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
 )
 
 func main() {

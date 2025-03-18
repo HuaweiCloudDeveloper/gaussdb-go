@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 /*

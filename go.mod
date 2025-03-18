@@ -1,4 +1,4 @@
-module github.com/HuaweiCloudDeveloper/gaussdb-go/v1
+module github.com/HuaweiCloudDeveloper/gaussdb-go
 
 go 1.21
 

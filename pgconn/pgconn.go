@@ -18,11 +18,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/iobufpool"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/pgio"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn/ctxwatch"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn/internal/bgreader"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgproto3"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/iobufpool"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/pgio"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn/ctxwatch"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn/internal/bgreader"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgproto3"
 )
 
 const (

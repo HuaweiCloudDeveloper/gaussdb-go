@@ -3,8 +3,8 @@ package gaussdb
 import (
 	"errors"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/pgio"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/pgio"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 // PostgreSQL format codes

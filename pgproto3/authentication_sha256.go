@@ -3,7 +3,7 @@ package pgproto3
 import (
 	"encoding/json"
 	"errors"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/pgio"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/pgio"
 )
 
 type ReadBuf []byte

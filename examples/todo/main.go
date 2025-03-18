@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
 )
 
 var conn *gaussdb.Conn

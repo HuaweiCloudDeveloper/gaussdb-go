@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/pgmock"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgproto3"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/pgmock"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgproto3"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

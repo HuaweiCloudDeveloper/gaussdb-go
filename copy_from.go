@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/pgio"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/pgio"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
 )
 
 // CopyFromRows returns a CopyFromSource interface over the provided rows slice

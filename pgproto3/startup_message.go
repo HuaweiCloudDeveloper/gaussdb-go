@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/pgio"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/pgio"
 )
 
 const ProtocolVersionNumber = 196608 // 3.0

@@ -11,10 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/sanitize"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/stmtcache"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/sanitize"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/stmtcache"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 // ConnConfig contains all the options used to establish a connection. It must be created by ParseConfig and

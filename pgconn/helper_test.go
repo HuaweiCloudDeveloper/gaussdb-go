@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

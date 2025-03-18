@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbpool"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbpool"
 )
 
 var pool *gaussdbpool.Pool

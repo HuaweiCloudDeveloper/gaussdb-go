@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 func TestCircleTranscode(t *testing.T) {

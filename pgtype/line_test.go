@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	pgx "github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbtest"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
+	pgx "github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 func TestLineTranscode(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	pgx "github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
+	pgx "github.com/HuaweiCloudDeveloper/gaussdb-go"
 	"github.com/stretchr/testify/require"
 )
 

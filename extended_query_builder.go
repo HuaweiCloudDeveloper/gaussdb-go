@@ -3,8 +3,8 @@ package gaussdb
 import (
 	"fmt"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgtype"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 // ExtendedQueryBuilder is used to choose the parameter formats, to format the parameters and to choose the result

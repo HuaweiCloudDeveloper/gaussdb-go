@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/pgconn/ctxwatch"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn/ctxwatch"
 	"github.com/stretchr/testify/require"
 )
 

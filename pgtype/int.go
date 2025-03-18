@@ -10,7 +10,7 @@ import (
 	"math"
 	"strconv"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/pgio"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/pgio"
 )
 
 type Int64Scanner interface {

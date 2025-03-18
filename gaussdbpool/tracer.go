@@ -2,7 +2,7 @@ package gaussdbpool
 
 import (
 	"context"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
 )
 
 // AcquireTracer traces Acquire.

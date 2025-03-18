@@ -2,7 +2,7 @@ package gaussdbpool_test
 
 import (
 	"context"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/gaussdbpool"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbpool"
 	"os"
 	"testing"
 

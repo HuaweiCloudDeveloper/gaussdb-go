@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
 )
 
 type Player struct {

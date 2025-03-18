@@ -23,7 +23,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
 )
 
 func main() {

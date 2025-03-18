@@ -2,7 +2,7 @@ package pgproto3
 
 import (
 	"bufio"
-	"github.com/HuaweiCloudDeveloper/gaussdb-go/v1/internal/iobufpool"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/iobufpool"
 	"io"
 )
 
