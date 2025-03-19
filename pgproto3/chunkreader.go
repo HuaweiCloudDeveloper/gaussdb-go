@@ -1,7 +1,6 @@
 package pgproto3
 
 import (
-	"bufio"
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/iobufpool"
 	"io"
 )
@@ -12,7 +11,7 @@ import (
 //
 // This is roughly equivalent to a bufio.Reader that only uses Peek and Discard to never copy bytes.
 type chunkReader struct {
-	rBuf *bufio.Reader // todo GaussDB
+	//rBuf *bufio.Reader // todo GaussDB
 
 	r io.Reader
 

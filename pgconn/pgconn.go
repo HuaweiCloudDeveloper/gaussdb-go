@@ -338,7 +338,7 @@ func connectOne(ctx context.Context, config *Config, connectConfig *connectOneCo
 	// todo ---------- GaussDB end ----------
 
 	// todo ---------- GaussDB 注释 start ----------
-	/*if connectConfig.tlsConfig != nil {
+	if connectConfig.tlsConfig != nil {
 		pgConn.contextWatcher = ctxwatch.NewContextWatcher(&DeadlineContextWatcherHandler{Conn: pgConn.conn})
 		pgConn.contextWatcher.Watch(ctx)
 		tlsConn, err := startTLS(pgConn.conn, connectConfig.tlsConfig)
@@ -353,7 +353,7 @@ func connectOne(ctx context.Context, config *Config, connectConfig *connectOneCo
 
 	pgConn.contextWatcher = ctxwatch.NewContextWatcher(config.BuildContextWatcherHandler(pgConn))
 	pgConn.contextWatcher.Watch(ctx)
-	defer pgConn.contextWatcher.Unwatch()*/
+	defer pgConn.contextWatcher.Unwatch()
 	// todo ---------- GaussDB 注释 end ----------
 
 	pgConn.parameterStatuses = make(map[string]string)
@@ -617,10 +617,10 @@ func (pgConn *PgConn) peekMessage() (pgproto3.BackendMessage, error) {
 		}
 	} else {
 		// todo ---------- GaussDB start ----------
-		err = pgConn.readMessage()
+		/*err = pgConn.startup()
 		if err != nil {
 			return nil, err
-		}
+		}*/
 		// todo ---------- GaussDB end ----------
 
 		msg, err = pgConn.frontend.Receive()
@@ -2670,12 +2670,11 @@ func (pgConn *PgConn) sendStartupPacket(m *writeBuf) error {
 	return err
 }
 
-func (pgConn *PgConn) GetRBuf() *bufio.Reader {
+/*func (pgConn *PgConn) GetRBuf() *bufio.Reader {
 	return pgConn.rBuf
-}
+}*/
 
-func (pgConn *PgConn) readMessage() error {
-	// Read at least the required number of bytes from the underlying io.Reader
+/*func (pgConn *PgConn) startup() error {
 	w := pgConn.writeBuf(0)
 
 	//
@@ -2739,6 +2738,6 @@ func (pgConn *PgConn) readMessage() error {
 	}
 
 	return nil
-}
+}*/
 
 // todo ---------- GaussDB end ----------

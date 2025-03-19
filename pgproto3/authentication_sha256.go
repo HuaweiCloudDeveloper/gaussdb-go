@@ -1,6 +1,8 @@
 package pgproto3
 
 import (
+	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/pgio"
@@ -27,26 +29,26 @@ func (dst *AuthenticationSHA256) Decode(src []byte) error {
 		return errors.New("authentication message too short")
 	}
 
-	/*authType := binary.BigEndian.Uint32(src)
+	authType := binary.BigEndian.Uint32(src)
 
 	if authType != AuthTypeSHA256 {
 		return errors.New("bad auth type")
-	}*/
+	}
 
 	//authMechanisms := src[4:]
 
 	readBuf := ReadBuf(src)
 	dst.r = &readBuf
 
-	/*authMechanisms := src[:74]
+	authMechanisms := src[8:82]
 	for len(authMechanisms) > 1 {
 		idx := bytes.IndexByte(authMechanisms, 0)
 		if idx == -1 {
-			//return &invalidMessageFormatErr{messageType: "AuthenticationSASL", details: "unterminated string"}
+			return &invalidMessageFormatErr{messageType: "AuthenticationSASL", details: "unterminated string"}
 		}
 		dst.AuthMechanisms = append(dst.AuthMechanisms, string(authMechanisms[:idx]))
 		authMechanisms = authMechanisms[idx+1:]
-	}*/
+	}
 
 	return nil
 }
@@ -56,11 +58,11 @@ func (src *AuthenticationSHA256) Encode(dst []byte) ([]byte, error) {
 	dst, sp := beginMessage(dst, 'R')
 	dst = pgio.AppendUint32(dst, AuthTypeSASL)
 
-	/*for _, s := range src.AuthMechanisms {
+	for _, s := range src.AuthMechanisms {
 		dst = append(dst, []byte(s)...)
 		dst = append(dst, 0)
 	}
-	dst = append(dst, 0)*/
+	dst = append(dst, 0)
 
 	return finishMessage(dst, sp)
 }

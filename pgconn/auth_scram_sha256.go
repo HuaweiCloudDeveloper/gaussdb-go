@@ -29,90 +29,69 @@ import (
 
 const clientSha256NonceLen = 18
 
-func (cn *PgConn) authSha256(r *readBuf) error {
-	/*if r.int32() != pgproto3.AuthTypeSHA256 {
-		return errors.New("bad auth type")
-	}*/
-
-	if cn.frontend.GetAuthType() != pgproto3.AuthTypeSHA256 {
-		return errors.New("bad auth type")
+func (c *PgConn) authSha256(r *readBuf) (*writeBuf, error) {
+	if r.int32() != pgproto3.AuthTypeSHA256 {
+		return nil, errors.New("bad auth type")
 	}
 
 	// 这里在openGauss为sha256加密办法，主要代码流程来自jdbc相关实现
-	//passwordStoredMethod := r.int32()
-	passwordStoredMethod := cn.frontend.GetPasswordStoredMethod()
+	passwordStoredMethod := r.int32()
 	digest := ""
-	if len(cn.config.Password) == 0 {
-		//errorf("The server requested password-based authentication, but no password was provided.")
-		return fmt.Errorf("The server requested password-based authentication, but no password was provided.")
+	if len(c.config.Password) == 0 {
+		return nil, fmt.Errorf("The server requested password-based authentication, but no password was provided.")
 	}
 
 	if passwordStoredMethod == PlainPassword || passwordStoredMethod == Sha256Password {
 		random64code := string(r.next(64))
 		token := string(r.next(8))
 		serverIteration := r.int32()
-		result := RFC5802Algorithm(cn.config.Password, random64code, token, "", serverIteration, "sha256")
+		result := RFC5802Algorithm(c.config.Password, random64code, token, "", serverIteration, "sha256")
 		if len(result) == 0 {
-			//errorf("Invalid username/password,login denied.")
-			return fmt.Errorf("Invalid username/password,login denied.")
+			return nil, fmt.Errorf("Invalid username/password,login denied.")
 		}
 
-		w := cn.writeBuf('p')
+		w := c.writeBuf('p')
 		w.buf = []byte("p")
 		w.pos = 1
 		w.int32(4 + len(result) + 1)
 		w.bytes(result)
 		w.byte(0)
 
-		cn.send(w)
-
-		t, r := cn.recv()
-
-		if t != 'R' {
-			//errorf("unexpected password response: %q", t)
-			return fmt.Errorf("unexpected password response: %q", t)
-		}
-
-		if r.int32() != 0 {
-			//errorf("unexpected authentication response: %q", t)
-			return fmt.Errorf("unexpected authentication response: %q", t)
-		}
-		// return
+		return w, nil
 	} else if passwordStoredMethod == Md5Password {
 		s := string(r.next(4))
-		digest = "md5" + md5s(md5s(cn.config.Password+cn.config.User)+s)
-		w := cn.writeBuf('p')
+		digest = "md5" + md5s(md5s(c.config.Password+c.config.User)+s)
+
+		w := c.writeBuf('p')
 		w.int16(4 + len(digest) + 1)
 		w.string(digest)
 		w.byte(0)
 
-		cn.send(w)
-
-		t, r := cn.recv()
-
-		if t != 'R' {
-			//errorf("unexpected password response: %q", t)
-			return fmt.Errorf("unexpected password response: %q", t)
-		}
-
-		if r.int32() != 0 {
-			//errorf("unexpected authentication response: %q", t)
-			return fmt.Errorf("unexpected authentication response: %q", t)
-		}
+		return w, nil
 	} else {
-		//errorf("The  password-stored method is not supported ,must be plain, md5 or sha256.")
-		return fmt.Errorf("The  password-stored method is not supported ,must be plain, md5 or sha256.")
+		return nil, fmt.Errorf("The  password-stored method is not supported ,must be plain, md5 or sha256.")
 	}
-
-	return nil
 }
 
 // Perform SCRAM authentication.
 func (c *PgConn) scramSha256Auth(serverAuthMechanisms []string, r *pgproto3.ReadBuf) error {
-	err := c.authSha256((*readBuf)(r))
+	w, err := c.authSha256((*readBuf)(r))
 	if err != nil {
 		return err
 	}
+
+	c.frontend.SendSha256(w.buf)
+	err = c.flushWithPotentialWriteReadDeadlock()
+	if err != nil {
+		return err
+	}
+
+	_, err = c.receiveMessage()
+	if err != nil {
+		return err
+	}
+
+	return nil
 
 	/*sc, err := newScramSha256Client(serverAuthMechanisms, c.config.Password)
 	if err != nil {
@@ -155,9 +134,8 @@ func (c *PgConn) scramSha256Auth(serverAuthMechanisms []string, r *pgproto3.Read
 	if err != nil {
 		return err
 	}
-	return sc.recvServerSha256FinalMessage(saslFinal.Data)*/
 
-	return nil
+	return sc.recvServerSha256FinalMessage(saslFinal.Data)*/
 }
 
 func (c *PgConn) rxSASLSha256Continue() (*pgproto3.AuthenticationSASLContinue, error) {
@@ -214,7 +192,7 @@ func newScramSha256Client(serverAuthMechanisms []string, password string) (*scra
 	// Ensure server supports SCRAM-SHA-256
 	hasScramSHA256 := false
 	for _, mech := range sc.serverAuthMechanisms {
-		if mech == "SCRAM-SHA-256" {
+		if mech != "SCRAM-SHA-256" {
 			hasScramSHA256 = true
 			break
 		}

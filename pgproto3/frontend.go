@@ -1,7 +1,6 @@
 package pgproto3
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/binary"
 	"errors"
@@ -61,12 +60,10 @@ type Frontend struct {
 	partialMsg bool
 	authType   uint32
 
-	//msgType              byte   // todo GaussDB
-	//authType             uint32 // todo GaussDB
-	passwordStoredMethod int    // todo GaussDB
-	msgBody              []byte // todo GaussDB
-	msgLength            int    // todo GaussDB
-	header               []byte // todo GaussDB
+	//passwordStoredMethod int    // todo GaussDB
+	//msgBody              []byte // todo GaussDB
+	//msgLength            int    // todo GaussDB
+	//header               []byte // todo GaussDB
 }
 
 // NewFrontend creates a new Frontend.
@@ -98,6 +95,15 @@ func (f *Frontend) Send(msg FrontendMessage) {
 	if f.tracer != nil {
 		f.tracer.traceMessage('F', int32(len(f.wbuf)-prevLen), msg)
 	}
+}
+
+// todo GaussDB
+func (f *Frontend) SendSha256(buf []byte) {
+	if f.encodeError != nil {
+		return
+	}
+
+	f.wbuf = buf
 }
 
 // Flush writes any pending messages to the backend (i.e. the server).
@@ -413,14 +419,14 @@ func (f *Frontend) Receive_back() (BackendMessage, error) {
 // Receive receives a message from the backend. The returned message is only valid until the next call to Receive.
 func (f *Frontend) Receive() (BackendMessage, error) {
 	if !f.partialMsg {
-		/*header, err := f.cr.Next(5)
+		header, err := f.cr.Next(5)
 		if err != nil {
 			return nil, translateEOFtoErrUnexpectedEOF(err)
-		}*/
+		}
 
-		f.msgType = f.header[0]
+		f.msgType = header[0]
 
-		/*msgLength := int(binary.BigEndian.Uint32(f.header[1:]))
+		msgLength := int(binary.BigEndian.Uint32(header[1:]))
 		if msgLength < 4 {
 			return nil, fmt.Errorf("invalid message length: %d", msgLength)
 		}
@@ -428,17 +434,18 @@ func (f *Frontend) Receive() (BackendMessage, error) {
 		f.bodyLen = msgLength - 4
 		if f.maxBodyLen > 0 && f.bodyLen > f.maxBodyLen {
 			return nil, &ExceededMaxBodyLenErr{f.maxBodyLen, f.bodyLen}
-		}*/
+		}
 
 		f.partialMsg = true
 	}
 
-	/*msgBody, err := f.cr.Next(f.bodyLen)
+	msgBody, err := f.cr.Next(f.bodyLen)
 	if err != nil {
 		return nil, translateEOFtoErrUnexpectedEOF(err)
-	}*/
+	}
 
-	msgBody := f.msgBody
+	// todo GaussDB
+	//msgBody := f.msgBody
 
 	f.partialMsg = false
 
@@ -498,7 +505,7 @@ func (f *Frontend) Receive() (BackendMessage, error) {
 		return nil, fmt.Errorf("unknown message type: %c", f.msgType)
 	}
 
-	err := msg.Decode(msgBody)
+	err = msg.Decode(msgBody)
 	if err != nil {
 		return nil, err
 	}
@@ -569,11 +576,7 @@ func (f *Frontend) findAuthenticationMessageType(src []byte) (BackendMessage, er
 	if len(src) < 4 {
 		return nil, errors.New("authentication message too short")
 	}
-	//f.authType = binary.BigEndian.Uint32(src[:4])
-
-	if f.authType != AuthTypeSHA256 {
-		return nil, errors.New("bad auth type")
-	}
+	f.authType = binary.BigEndian.Uint32(src[:4])
 
 	switch f.authType {
 	case AuthTypeOk:
@@ -631,29 +634,29 @@ func (f *Frontend) GetCR() *chunkReader {
 	return f.cr
 }
 
-func (f *Frontend) SetHeader(header []byte) {
+/*func (f *Frontend) SetHeader(header []byte) {
 	f.header = header
-}
+}*/
 
 func (f *Frontend) SetAuthType(authType uint32) {
 	f.authType = authType
 }
 
-func (f *Frontend) SetPasswordStoredMethod(passwordStoredMethod int) {
+/*func (f *Frontend) SetPasswordStoredMethod(passwordStoredMethod int) {
 	f.passwordStoredMethod = passwordStoredMethod
-}
+}*/
 
-func (f *Frontend) GetPasswordStoredMethod() int {
+/*func (f *Frontend) GetPasswordStoredMethod() int {
 	return f.passwordStoredMethod
-}
+}*/
 
-func (f *Frontend) SetMsgBody(msgBody []byte) {
+/*func (f *Frontend) SetMsgBody(msgBody []byte) {
 	f.msgBody = msgBody
-}
+}*/
 
-func (cr *chunkReader) SetRBuf(rBuf *bufio.Reader) {
+/*func (cr *chunkReader) SetRBuf(rBuf *bufio.Reader) {
 	cr.rBuf = rBuf
-}
+}*/
 
 /*func (cr *chunkReader) SetPgConn(pgConn PgConn) {
 	cr.pgConn = pgConn
