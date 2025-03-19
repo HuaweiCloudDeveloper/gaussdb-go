@@ -1,8 +1,9 @@
-package pgxpool
+package gaussdbpool
 
 import (
 	"context"
 	"fmt"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
 	"math/rand"
 	"runtime"
 	"strconv"
@@ -10,8 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
 	"github.com/jackc/puddle/v2"
 )
 
@@ -22,7 +22,7 @@ var defaultMaxConnIdleTime = time.Minute * 30
 var defaultHealthCheckPeriod = time.Minute
 
 type connResource struct {
-	conn       *pgx.Conn
+	conn       *gaussdb.Conn
 	conns      []Conn
 	poolRows   []poolRow
 	poolRowss  []poolRows
@@ -43,7 +43,7 @@ func (cr *connResource) getConn(p *Pool, res *puddle.Resource[*connResource]) *C
 	return c
 }
 
-func (cr *connResource) getPoolRow(c *Conn, r pgx.Row) *poolRow {
+func (cr *connResource) getPoolRow(c *Conn, r gaussdb.Row) *poolRow {
 	if len(cr.poolRows) == 0 {
 		cr.poolRows = make([]poolRow, 128)
 	}
@@ -57,7 +57,7 @@ func (cr *connResource) getPoolRow(c *Conn, r pgx.Row) *poolRow {
 	return pr
 }
 
-func (cr *connResource) getPoolRows(c *Conn, r pgx.Rows) *poolRows {
+func (cr *connResource) getPoolRows(c *Conn, r gaussdb.Rows) *poolRows {
 	if len(cr.poolRowss) == 0 {
 		cr.poolRowss = make([]poolRows, 128)
 	}
@@ -81,11 +81,11 @@ type Pool struct {
 
 	p                     *puddle.Pool[*connResource]
 	config                *Config
-	beforeConnect         func(context.Context, *pgx.ConnConfig) error
-	afterConnect          func(context.Context, *pgx.Conn) error
-	beforeAcquire         func(context.Context, *pgx.Conn) bool
-	afterRelease          func(*pgx.Conn) bool
-	beforeClose           func(*pgx.Conn)
+	beforeConnect         func(context.Context, *gaussdb.ConnConfig) error
+	afterConnect          func(context.Context, *gaussdb.Conn) error
+	beforeAcquire         func(context.Context, *gaussdb.Conn) bool
+	afterRelease          func(*gaussdb.Conn) bool
+	beforeClose           func(*gaussdb.Conn)
 	minConns              int32
 	maxConns              int32
 	maxConnLifetime       time.Duration
@@ -105,26 +105,26 @@ type Pool struct {
 // Config is the configuration struct for creating a pool. It must be created by [ParseConfig] and then it can be
 // modified.
 type Config struct {
-	ConnConfig *pgx.ConnConfig
+	ConnConfig *gaussdb.ConnConfig
 
-	// BeforeConnect is called before a new connection is made. It is passed a copy of the underlying pgx.ConnConfig and
+	// BeforeConnect is called before a new connection is made. It is passed a copy of the underlying gaussdb.ConnConfig and
 	// will not impact any existing open connections.
-	BeforeConnect func(context.Context, *pgx.ConnConfig) error
+	BeforeConnect func(context.Context, *gaussdb.ConnConfig) error
 
 	// AfterConnect is called after a connection is established, but before it is added to the pool.
-	AfterConnect func(context.Context, *pgx.Conn) error
+	AfterConnect func(context.Context, *gaussdb.Conn) error
 
 	// BeforeAcquire is called before a connection is acquired from the pool. It must return true to allow the
 	// acquisition or false to indicate that the connection should be destroyed and a different connection should be
 	// acquired.
-	BeforeAcquire func(context.Context, *pgx.Conn) bool
+	BeforeAcquire func(context.Context, *gaussdb.Conn) bool
 
 	// AfterRelease is called after a connection is released, but before it is returned to the pool. It must return true to
 	// return the connection to the pool or false to destroy the connection.
-	AfterRelease func(*pgx.Conn) bool
+	AfterRelease func(*gaussdb.Conn) bool
 
 	// BeforeClose is called right before a connection is closed and removed from the pool.
-	BeforeClose func(*pgx.Conn)
+	BeforeClose func(*gaussdb.Conn)
 
 	// MaxConnLifetime is the duration since creation after which a connection will be automatically closed.
 	MaxConnLifetime time.Duration
@@ -160,7 +160,7 @@ func (c *Config) Copy() *Config {
 	return newConfig
 }
 
-// ConnString returns the connection string as parsed by pgxpool.ParseConfig into pgxpool.Config.
+// ConnString returns the connection string as parsed by gaussdbpool.ParseConfig into gaussdbpool.Config.
 func (c *Config) ConnString() string { return c.ConnConfig.ConnString() }
 
 // New creates a new Pool. See [ParseConfig] for information on connString format.
@@ -224,7 +224,7 @@ func NewWithConfig(ctx context.Context, config *Config) (*Pool, error) {
 					}
 				}
 
-				conn, err := pgx.ConnectConfig(ctx, connConfig)
+				conn, err := gaussdb.ConnectConfig(ctx, connConfig)
 				if err != nil {
 					return nil, err
 				}
@@ -278,7 +278,7 @@ func NewWithConfig(ctx context.Context, config *Config) (*Pool, error) {
 	return p, nil
 }
 
-// ParseConfig builds a Config from connString. It parses connString with the same behavior as [pgx.ParseConfig] with the
+// ParseConfig builds a Config from connString. It parses connString with the same behavior as [gaussdb.ParseConfig] with the
 // addition of the following variables:
 //
 //   - pool_max_conns: integer greater than 0 (default 4)
@@ -296,7 +296,7 @@ func NewWithConfig(ctx context.Context, config *Config) (*Pool, error) {
 //	# Example URL
 //	postgres://jack:secret@pg.example.com:5432/mydb?sslmode=verify-ca&pool_max_conns=10&pool_max_conn_lifetime=1h30m
 func ParseConfig(connString string) (*Config, error) {
-	connConfig, err := pgx.ParseConfig(connString)
+	connConfig, err := gaussdb.ParseConfig(connString)
 	if err != nil {
 		return nil, err
 	}
@@ -513,7 +513,7 @@ func (p *Pool) Acquire(ctx context.Context) (c *Conn, err error) {
 	if p.acquireTracer != nil {
 		ctx = p.acquireTracer.TraceAcquireStart(ctx, p, TraceAcquireStartData{})
 		defer func() {
-			var conn *pgx.Conn
+			var conn *gaussdb.Conn
 			if c != nil {
 				conn = c.Conn()
 			}
@@ -587,7 +587,7 @@ func (p *Pool) Reset() {
 // Config returns a copy of config that was used to initialize this pool.
 func (p *Pool) Config() *Config { return p.config.Copy() }
 
-// Stat returns a pgxpool.Stat struct with a snapshot of Pool statistics.
+// Stat returns a gaussdbpool.Stat struct with a snapshot of Pool statistics.
 func (p *Pool) Stat() *Stat {
 	return &Stat{
 		s:                    p.p.Stat(),
@@ -611,17 +611,17 @@ func (p *Pool) Exec(ctx context.Context, sql string, arguments ...any) (pgconn.C
 	return c.Exec(ctx, sql, arguments...)
 }
 
-// Query acquires a connection and executes a query that returns pgx.Rows.
+// Query acquires a connection and executes a query that returns gaussdb.Rows.
 // Arguments should be referenced positionally from the SQL string as $1, $2, etc.
-// See pgx.Rows documentation to close the returned Rows and return the acquired connection to the Pool.
+// See gaussdb.Rows documentation to close the returned Rows and return the acquired connection to the Pool.
 //
-// If there is an error, the returned pgx.Rows will be returned in an error state.
-// If preferred, ignore the error returned from Query and handle errors using the returned pgx.Rows.
+// If there is an error, the returned gaussdb.Rows will be returned in an error state.
+// If preferred, ignore the error returned from Query and handle errors using the returned gaussdb.Rows.
 //
 // For extra control over how the query is executed, the types QuerySimpleProtocol, QueryResultFormats, and
 // QueryResultFormatsByOID may be used as the first args to control exactly how the query is executed. This is rarely
 // needed. See the documentation for those types for details.
-func (p *Pool) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+func (p *Pool) Query(ctx context.Context, sql string, args ...any) (gaussdb.Rows, error) {
 	c, err := p.Acquire(ctx)
 	if err != nil {
 		return errRows{err: err}, err
@@ -637,18 +637,18 @@ func (p *Pool) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, er
 }
 
 // QueryRow acquires a connection and executes a query that is expected
-// to return at most one row (pgx.Row). Errors are deferred until pgx.Row's
-// Scan method is called. If the query selects no rows, pgx.Row's Scan will
-// return ErrNoRows. Otherwise, pgx.Row's Scan scans the first selected row
+// to return at most one row (gaussdb.Row). Errors are deferred until gaussdb.Row's
+// Scan method is called. If the query selects no rows, gaussdb.Row's Scan will
+// return ErrNoRows. Otherwise, gaussdb.Row's Scan scans the first selected row
 // and discards the rest. The acquired connection is returned to the Pool when
-// pgx.Row's Scan method is called.
+// gaussdb.Row's Scan method is called.
 //
 // Arguments should be referenced positionally from the SQL string as $1, $2, etc.
 //
 // For extra control over how the query is executed, the types QuerySimpleProtocol, QueryResultFormats, and
 // QueryResultFormatsByOID may be used as the first args to control exactly how the query is executed. This is rarely
 // needed. See the documentation for those types for details.
-func (p *Pool) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
+func (p *Pool) QueryRow(ctx context.Context, sql string, args ...any) gaussdb.Row {
 	c, err := p.Acquire(ctx)
 	if err != nil {
 		return errRow{err: err}
@@ -658,7 +658,7 @@ func (p *Pool) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
 	return c.getPoolRow(row)
 }
 
-func (p *Pool) SendBatch(ctx context.Context, b *pgx.Batch) pgx.BatchResults {
+func (p *Pool) SendBatch(ctx context.Context, b *gaussdb.Batch) gaussdb.BatchResults {
 	c, err := p.Acquire(ctx)
 	if err != nil {
 		return errBatchResults{err: err}
@@ -670,17 +670,17 @@ func (p *Pool) SendBatch(ctx context.Context, b *pgx.Batch) pgx.BatchResults {
 
 // Begin acquires a connection from the Pool and starts a transaction. Unlike database/sql, the context only affects the begin command. i.e. there is no
 // auto-rollback on context cancellation. Begin initiates a transaction block without explicitly setting a transaction mode for the block (see BeginTx with TxOptions if transaction mode is required).
-// *pgxpool.Tx is returned, which implements the pgx.Tx interface.
+// *gaussdbpool.Tx is returned, which implements the gaussdb.Tx interface.
 // Commit or Rollback must be called on the returned transaction to finalize the transaction block.
-func (p *Pool) Begin(ctx context.Context) (pgx.Tx, error) {
-	return p.BeginTx(ctx, pgx.TxOptions{})
+func (p *Pool) Begin(ctx context.Context) (gaussdb.Tx, error) {
+	return p.BeginTx(ctx, gaussdb.TxOptions{})
 }
 
-// BeginTx acquires a connection from the Pool and starts a transaction with pgx.TxOptions determining the transaction mode.
+// BeginTx acquires a connection from the Pool and starts a transaction with gaussdb.TxOptions determining the transaction mode.
 // Unlike database/sql, the context only affects the begin command. i.e. there is no auto-rollback on context cancellation.
-// *pgxpool.Tx is returned, which implements the pgx.Tx interface.
+// *gaussdbpool.Tx is returned, which implements the gaussdb.Tx interface.
 // Commit or Rollback must be called on the returned transaction to finalize the transaction block.
-func (p *Pool) BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error) {
+func (p *Pool) BeginTx(ctx context.Context, txOptions gaussdb.TxOptions) (gaussdb.Tx, error) {
 	c, err := p.Acquire(ctx)
 	if err != nil {
 		return nil, err
@@ -695,7 +695,7 @@ func (p *Pool) BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, er
 	return &Tx{t: t, c: c}, nil
 }
 
-func (p *Pool) CopyFrom(ctx context.Context, tableName pgx.Identifier, columnNames []string, rowSrc pgx.CopyFromSource) (int64, error) {
+func (p *Pool) CopyFrom(ctx context.Context, tableName gaussdb.Identifier, columnNames []string, rowSrc gaussdb.CopyFromSource) (int64, error) {
 	c, err := p.Acquire(ctx)
 	if err != nil {
 		return 0, err

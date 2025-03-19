@@ -1,4 +1,4 @@
-package pgx
+package gaussdb
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 // Rows is the result set returned from *Conn.Query. Rows must be closed before

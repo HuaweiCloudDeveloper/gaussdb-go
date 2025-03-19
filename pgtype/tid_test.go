@@ -4,14 +4,14 @@ import (
 	"context"
 	"testing"
 
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 func TestTIDCodec(t *testing.T) {
 	skipCockroachDB(t, "Server does not support type tid")
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "tid", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "tid", []gaussdbtest.ValueRoundTripTest{
 		{
 			pgtype.TID{BlockNumber: 42, OffsetNumber: 43, Valid: true},
 			new(pgtype.TID),

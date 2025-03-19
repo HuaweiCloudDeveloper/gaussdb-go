@@ -1,4 +1,4 @@
-package pgx
+package gaussdb
 
 import (
 	"bytes"
@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/jackc/pgx/v5/internal/pgio"
-	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/pgio"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
 )
 
 // CopyFromRows returns a CopyFromSource interface over the provided rows slice

@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/jackc/pgx/v5/pgproto3"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgproto3"
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/text/secure/precis"
 )

@@ -1,9 +1,8 @@
 package pgproto3
 
 import (
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/iobufpool"
 	"io"
-
-	"github.com/jackc/pgx/v5/internal/iobufpool"
 )
 
 // chunkReader is a io.Reader wrapper that minimizes IO reads and memory allocations. It allocates memory in chunks and
@@ -12,6 +11,8 @@ import (
 //
 // This is roughly equivalent to a bufio.Reader that only uses Peek and Discard to never copy bytes.
 type chunkReader struct {
+	//rBuf *bufio.Reader // todo GaussDB
+
 	r io.Reader
 
 	buf    *[]byte
@@ -40,9 +41,60 @@ func newChunkReader(r io.Reader, minBufSize int) *chunkReader {
 	}
 }
 
+// todo GaussDB back
 // Next returns buf filled with the next n bytes. buf is only valid until next call of Next. If an error occurs, buf
 // will be nil.
 func (r *chunkReader) Next(n int) (buf []byte, err error) {
+	// Reset the buffer if it is empty
+	if r.rp == r.wp {
+		if len(*r.buf) != r.minBufSize {
+			iobufpool.Put(r.buf)
+			r.buf = iobufpool.Get(r.minBufSize)
+		}
+		r.rp = 0
+		r.wp = 0
+	}
+
+	// n bytes already in buf
+	if (r.wp - r.rp) >= n {
+		buf = (*r.buf)[r.rp : r.rp+n : r.rp+n]
+		r.rp += n
+		return buf, err
+	}
+
+	// buf is smaller than requested number of bytes
+	if len(*r.buf) < n {
+		bigBuf := iobufpool.Get(n)
+		r.wp = copy((*bigBuf), (*r.buf)[r.rp:r.wp])
+		r.rp = 0
+		iobufpool.Put(r.buf)
+		r.buf = bigBuf
+	}
+
+	// buf is large enough, but need to shift filled area to start to make enough contiguous space
+	minReadCount := n - (r.wp - r.rp)
+	if (len(*r.buf) - r.wp) < minReadCount {
+		r.wp = copy((*r.buf), (*r.buf)[r.rp:r.wp])
+		r.rp = 0
+	}
+
+	// Read at least the required number of bytes from the underlying io.Reader
+	readBytesCount, err := io.ReadAtLeast(r.r, (*r.buf)[r.wp:], minReadCount)
+	r.wp += readBytesCount
+	// fmt.Println("read", n)
+	if err != nil {
+		return nil, err
+	}
+
+	buf = (*r.buf)[r.rp : r.rp+n : r.rp+n]
+	r.rp += n
+	return buf, nil
+}
+
+// todo GaussDB new
+// Next returns buf filled with the next n bytes. buf is only valid until next call of Next. If an error occurs, buf
+// will be nil.
+func (r *chunkReader) Next_new(n int) (buf []byte, err error) {
 	// Reset the buffer if it is empty
 	if r.rp == r.wp {
 		if len(*r.buf) != r.minBufSize {

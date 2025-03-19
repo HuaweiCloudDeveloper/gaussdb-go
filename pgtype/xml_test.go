@@ -6,8 +6,8 @@ import (
 	"encoding/xml"
 	"testing"
 
-	pgx "github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxtest"
+	pgx "github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -20,7 +20,7 @@ type xmlStruct struct {
 
 func TestXMLCodec(t *testing.T) {
 	skipCockroachDB(t, "CockroachDB does not support XML.")
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "xml", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "xml", []gaussdbtest.ValueRoundTripTest{
 		{nil, new(*xmlStruct), isExpectedEq((*xmlStruct)(nil))},
 		{map[string]any(nil), new(*string), isExpectedEq((*string)(nil))},
 		{map[string]any(nil), new([]byte), isExpectedEqBytes([]byte(nil))},
@@ -34,7 +34,7 @@ func TestXMLCodec(t *testing.T) {
 		{sql.NullString{String: "", Valid: true}, new(sql.NullString), isExpectedEq(sql.NullString{String: "", Valid: true})},
 	})
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, pgxtest.KnownOIDQueryExecModes, "xml", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, gaussdbtest.KnownOIDQueryExecModes, "xml", []gaussdbtest.ValueRoundTripTest{
 		{[]byte(`<?xml version="1.0"?><Root></Root>`), new([]byte), isExpectedEqBytes([]byte(`<Root></Root>`))},
 		{[]byte(`<?xml version="1.0"?>`), new([]byte), isExpectedEqBytes([]byte(``))},
 		{[]byte(`<?xml version="1.0"?>`), new(string), isExpectedEq(``)},
@@ -50,7 +50,7 @@ func TestXMLCodec(t *testing.T) {
 // https://github.com/jackc/pgx/issues/1273#issuecomment-1221414648
 func TestXMLCodecUnmarshalSQLNull(t *testing.T) {
 	skipCockroachDB(t, "CockroachDB does not support XML.")
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		// Byte arrays are nilified
 		slice := []byte{10, 4}
 		err := conn.QueryRow(ctx, "select null::xml").Scan(&slice)
@@ -85,7 +85,7 @@ func TestXMLCodecUnmarshalSQLNull(t *testing.T) {
 
 func TestXMLCodecPointerToPointerToString(t *testing.T) {
 	skipCockroachDB(t, "CockroachDB does not support XML.")
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		var s *string
 		err := conn.QueryRow(ctx, "select ''::xml").Scan(&s)
 		require.NoError(t, err)
@@ -100,7 +100,7 @@ func TestXMLCodecPointerToPointerToString(t *testing.T) {
 
 func TestXMLCodecDecodeValue(t *testing.T) {
 	skipCockroachDB(t, "CockroachDB does not support XML.")
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, _ testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, _ testing.TB, conn *gaussdb.Conn) {
 		for _, tt := range []struct {
 			sql      string
 			expected any

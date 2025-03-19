@@ -1,4 +1,4 @@
-[![Go Reference](https://pkg.go.dev/badge/github.com/jackc/pgx/v5.svg)](https://pkg.go.dev/github.com/jackc/pgx/v5)
+[![Go Reference](https://pkg.go.dev/badge/github.com/HuaweiCloudDeveloper/gaussdb-go.svg)](https://pkg.go.dev/github.com/HuaweiCloudDeveloper/gaussdb-go)
 [![Build Status](https://github.com/jackc/pgx/actions/workflows/ci.yml/badge.svg)](https://github.com/jackc/pgx/actions/workflows/ci.yml)
 
 # pgx - PostgreSQL Driver and Toolkit
@@ -22,12 +22,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
 )
 
 func main() {
 	// urlExample := "postgres://username:password@localhost:5432/database_name"
-	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+	conn, err := gaussdb.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)

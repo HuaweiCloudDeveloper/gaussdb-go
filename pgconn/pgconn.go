@@ -1,6 +1,7 @@
 package pgconn
 
 import (
+	"bufio"
 	"container/list"
 	"context"
 	"crypto/md5"
@@ -17,11 +18,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jackc/pgx/v5/internal/iobufpool"
-	"github.com/jackc/pgx/v5/internal/pgio"
-	"github.com/jackc/pgx/v5/pgconn/ctxwatch"
-	"github.com/jackc/pgx/v5/pgconn/internal/bgreader"
-	"github.com/jackc/pgx/v5/pgproto3"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/iobufpool"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/pgio"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn/ctxwatch"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn/internal/bgreader"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgproto3"
 )
 
 const (
@@ -73,6 +74,15 @@ type NotificationHandler func(*PgConn, *Notification)
 
 // PgConn is a low-level PostgreSQL connection handle. It is not safe for concurrent usage.
 type PgConn struct {
+	rBuf              *bufio.Reader // todo GaussDB
+	scratch           []byte        // todo GaussDB
+	saveMessageType   byte          // todo GaussDB
+	saveMessageBuffer []byte        // todo GaussDB
+	// If not nil, notices will be synchronously sent here
+	noticeHandler func(*Error) // todo GaussDB
+	// If not nil, notifications will be synchronously sent here
+	notificationHandler func(*NotificationP) // todo GaussDB
+
 	conn              net.Conn
 	pid               uint32            // backend pid
 	secretKey         uint32            // key to use to send a cancel query message to the server
@@ -319,6 +329,15 @@ func connectOne(ctx context.Context, config *Config, connectConfig *connectOneCo
 		return nil, newPerDialConnectError("dial error", err)
 	}
 
+	// todo ---------- GaussDB start ----------
+	if config.minReadBufferSize == 0 {
+		config.minReadBufferSize = 8192
+	}
+	pgConn.scratch = make([]byte, config.minReadBufferSize)
+	pgConn.rBuf = bufio.NewReader(pgConn.conn)
+	// todo ---------- GaussDB end ----------
+
+	// todo ---------- GaussDB 注释 start ----------
 	if connectConfig.tlsConfig != nil {
 		pgConn.contextWatcher = ctxwatch.NewContextWatcher(&DeadlineContextWatcherHandler{Conn: pgConn.conn})
 		pgConn.contextWatcher.Watch(ctx)
@@ -335,6 +354,7 @@ func connectOne(ctx context.Context, config *Config, connectConfig *connectOneCo
 	pgConn.contextWatcher = ctxwatch.NewContextWatcher(config.BuildContextWatcherHandler(pgConn))
 	pgConn.contextWatcher.Watch(ctx)
 	defer pgConn.contextWatcher.Unwatch()
+	// todo ---------- GaussDB 注释 end ----------
 
 	pgConn.parameterStatuses = make(map[string]string)
 	pgConn.status = connStatusConnecting
@@ -349,6 +369,7 @@ func connectOne(ctx context.Context, config *Config, connectConfig *connectOneCo
 	pgConn.bgReaderStarted = make(chan struct{})
 	pgConn.frontend = config.BuildFrontend(pgConn.bgReader, pgConn.conn)
 
+	// todo ---------- GaussDB 注释 start ----------
 	startupMsg := pgproto3.StartupMessage{
 		ProtocolVersion: pgproto3.ProtocolVersionNumber,
 		Parameters:      make(map[string]string),
@@ -369,6 +390,7 @@ func connectOne(ctx context.Context, config *Config, connectConfig *connectOneCo
 		pgConn.conn.Close()
 		return nil, newPerDialConnectError("failed to write startup message", err)
 	}
+	// todo ---------- GaussDB 注释 end ----------
 
 	for {
 		msg, err := pgConn.receiveMessage()
@@ -405,6 +427,14 @@ func connectOne(ctx context.Context, config *Config, connectConfig *connectOneCo
 				pgConn.conn.Close()
 				return nil, newPerDialConnectError("failed SASL auth", err)
 			}
+		// todo ---------- GaussDB start ----------
+		case *pgproto3.AuthenticationSHA256:
+			err = pgConn.scramSha256Auth(msg.AuthMechanisms, msg.GetR())
+			if err != nil {
+				pgConn.conn.Close()
+				return nil, newPerDialConnectError("failed SASL SHA256 auth", err)
+			}
+		// todo ---------- GaussDB end ----------
 		case *pgproto3.AuthenticationGSS:
 			err = pgConn.gssAuth()
 			if err != nil {
@@ -524,6 +554,47 @@ func (pgConn *PgConn) ReceiveMessage(ctx context.Context) (pgproto3.BackendMessa
 	return msg, err
 }
 
+// todo GaussDB back
+// peekMessage peeks at the next message without setting up context cancellation.
+func (pgConn *PgConn) peekMessage_back() (pgproto3.BackendMessage, error) {
+	if pgConn.peekedMsg != nil {
+		return pgConn.peekedMsg, nil
+	}
+
+	var msg pgproto3.BackendMessage
+	var err error
+	if pgConn.bufferingReceive {
+		pgConn.bufferingReceiveMux.Lock()
+		msg = pgConn.bufferingReceiveMsg
+		err = pgConn.bufferingReceiveErr
+		pgConn.bufferingReceiveMux.Unlock()
+		pgConn.bufferingReceive = false
+
+		// If a timeout error happened in the background try the read again.
+		var netErr net.Error
+		if errors.As(err, &netErr) && netErr.Timeout() {
+			msg, err = pgConn.frontend.Receive()
+		}
+	} else {
+		msg, err = pgConn.frontend.Receive()
+	}
+
+	if err != nil {
+		// Close on anything other than timeout error - everything else is fatal
+		var netErr net.Error
+		isNetErr := errors.As(err, &netErr)
+		if !(isNetErr && netErr.Timeout()) {
+			pgConn.asyncClose()
+		}
+
+		return nil, err
+	}
+
+	pgConn.peekedMsg = msg
+	return msg, nil
+}
+
+// todo GaussDB new
 // peekMessage peeks at the next message without setting up context cancellation.
 func (pgConn *PgConn) peekMessage() (pgproto3.BackendMessage, error) {
 	if pgConn.peekedMsg != nil {
@@ -545,6 +616,13 @@ func (pgConn *PgConn) peekMessage() (pgproto3.BackendMessage, error) {
 			msg, err = pgConn.frontend.Receive()
 		}
 	} else {
+		// todo ---------- GaussDB start ----------
+		/*err = pgConn.startup()
+		if err != nil {
+			return nil, err
+		}*/
+		// todo ---------- GaussDB end ----------
+
 		msg, err = pgConn.frontend.Receive()
 	}
 
@@ -2483,3 +2561,183 @@ func (h *CancelRequestContextWatcherHandler) HandleUnwatchAfterCancel() {
 
 	h.Conn.conn.SetDeadline(time.Time{})
 }
+
+// todo ---------- GaussDB start ----------
+const (
+	PlainPassword  = 0
+	Md5Password    = 1
+	Sha256Password = 2
+)
+
+func (pgConn *PgConn) writeBuf(b byte) *writeBuf {
+	pgConn.scratch[0] = b
+	return &writeBuf{
+		buf: pgConn.scratch[:5],
+		pos: 1,
+	}
+}
+
+func (pgConn *PgConn) send(m *writeBuf) {
+	n, err := pgConn.conn.Write(m.wrap())
+	if err != nil {
+		if n == 0 {
+			err = &safeRetryError{Err: err}
+		}
+		panic(err)
+	}
+}
+
+type safeRetryError struct {
+	Err error
+}
+
+func (se *safeRetryError) Error() string {
+	return se.Err.Error()
+}
+
+// recv receives a message from the backend, but if an error happened while
+// reading the message or the received message was an ErrorResponse, it panics.
+// NoticeResponses are ignored.  This function should generally be used only
+// during the startup sequence.
+func (pgConn *PgConn) recv() (t byte, r *readBuf) {
+	for {
+		var err error
+		r = &readBuf{}
+		t, err = pgConn.recvMessage(r)
+		if err != nil {
+			panic(err)
+		}
+		switch t {
+		case 'E':
+			panic(parseError(r))
+		case 'N':
+			if n := pgConn.noticeHandler; n != nil {
+				n(parseError(r))
+			}
+		case 'A':
+			if n := pgConn.notificationHandler; n != nil {
+				n(recvNotification(r))
+			}
+		default:
+			return
+		}
+	}
+}
+
+// recvMessage receives any message from the backend, or returns an error if
+// a problem occurred while reading the message.
+func (pgConn *PgConn) recvMessage(r *readBuf) (byte, error) {
+	// workaround for a QueryRow bug, see exec
+	if pgConn.saveMessageType != 0 {
+		t := pgConn.saveMessageType
+		*r = pgConn.saveMessageBuffer
+		pgConn.saveMessageType = 0
+		pgConn.saveMessageBuffer = nil
+		return t, nil
+	}
+
+	x := pgConn.scratch[:5]
+	_, err := io.ReadFull(pgConn.rBuf, x)
+	if err != nil {
+		return 0, err
+	}
+
+	// read the type and length of the message that follows
+	t := x[0]
+	n := int(binary.BigEndian.Uint32(x[1:])) - 4
+	var y []byte
+	if n <= len(pgConn.scratch) {
+		y = pgConn.scratch[:n]
+	} else {
+		y = make([]byte, n)
+	}
+	_, err = io.ReadFull(pgConn.rBuf, y)
+	if err != nil {
+		return 0, err
+	}
+	*r = y
+	return t, nil
+}
+
+func md5s(s string) string {
+	h := md5.New()
+	h.Write([]byte(s))
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+func (pgConn *PgConn) sendStartupPacket(m *writeBuf) error {
+	_, err := pgConn.conn.Write((m.wrap())[1:])
+	return err
+}
+
+/*func (pgConn *PgConn) GetRBuf() *bufio.Reader {
+	return pgConn.rBuf
+}*/
+
+/*func (pgConn *PgConn) startup() error {
+	w := pgConn.writeBuf(0)
+
+	//
+	// w.int32(196608)
+	//
+	// PROTOCOL_VERSION_350
+	// PROTOCOL_VERSION_351 196659
+	w.int32(196659)
+	// Send the backend the name of the database we want to connect to, and the
+	// user we want to connect as.  Additionally, we send over any run-time
+	// parameters potentially included in the connection string.  If the server
+	// doesn't recognize any of them, it will reply with an error.
+
+	for k, v := range pgConn.config.RuntimeParams {
+		w.string(k)
+		w.string(v)
+	}
+	if pgConn.config.Database != "" {
+		w.string(paramDatabase)
+		w.string(pgConn.config.Database)
+	}
+	w.string(paramUser)
+	w.string(pgConn.config.User)
+
+	w.string("")
+	if err := pgConn.sendStartupPacket(w); err != nil {
+		return err
+	}
+
+	header := pgConn.scratch[:5]
+	_, err := io.ReadFull(pgConn.rBuf, header)
+	if err != nil {
+		return err
+	}
+	pgConn.frontend.SetHeader(header)
+
+	AuthTypes := pgConn.scratch[5:9]
+	_, err = io.ReadFull(pgConn.rBuf, AuthTypes)
+	if err != nil {
+		return err
+	}
+	pgConn.frontend.SetAuthType(uint32(AuthTypes[3]))
+
+	PasswordStoredMethods := pgConn.scratch[9:13]
+	_, err = io.ReadFull(pgConn.rBuf, PasswordStoredMethods)
+	if err != nil {
+		return err
+	}
+	pgConn.frontend.SetPasswordStoredMethod(int(PasswordStoredMethods[3]))
+
+	msgBody := pgConn.scratch[13:89]
+	_, err = io.ReadFull(pgConn.rBuf, msgBody)
+	if err != nil {
+		return err
+	}
+	pgConn.frontend.SetMsgBody(msgBody)
+
+	cr := pgConn.frontend.GetCR()
+	if cr != nil {
+		cr.SetRBuf(pgConn.rBuf)
+	}
+
+	return nil
+}*/
+
+// todo ---------- GaussDB end ----------

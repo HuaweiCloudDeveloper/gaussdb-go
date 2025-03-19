@@ -1,4 +1,4 @@
-package pgxpool
+package gaussdbpool
 
 import (
 	"time"

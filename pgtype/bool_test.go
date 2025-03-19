@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 func TestBoolCodec(t *testing.T) {
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "bool", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "bool", []gaussdbtest.ValueRoundTripTest{
 		{true, new(bool), isExpectedEq(true)},
 		{false, new(bool), isExpectedEq(false)},
 		{true, new(pgtype.Bool), isExpectedEq(pgtype.Bool{Bool: true, Valid: true})},

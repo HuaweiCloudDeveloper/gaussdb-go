@@ -10,7 +10,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
 )
 
 // LogLevel represents the pgx logging level. See LogLevel* constants for
@@ -47,13 +47,13 @@ func (ll LogLevel) String() string {
 	}
 }
 
-// Logger is the interface used to get log output from pgx.
+// Logger is the interface used to get log output from gaussdb.
 type Logger interface {
 	// Log a message at the given level with data key/value pairs. data may be nil.
 	Log(ctx context.Context, level LogLevel, msg string, data map[string]any)
 }
 
-// LoggerFunc is a wrapper around a function to satisfy the pgx.Logger interface
+// LoggerFunc is a wrapper around a function to satisfy the gaussdb.Logger interface
 type LoggerFunc func(ctx context.Context, level LogLevel, msg string, data map[string]interface{})
 
 // Log delegates the logging request to the wrapped function
@@ -130,7 +130,7 @@ func DefaultTraceLogConfig() *TraceLogConfig {
 	}
 }
 
-// TraceLog implements pgx.QueryTracer, pgx.BatchTracer, pgx.ConnectTracer, and pgx.CopyFromTracer. Logger and LogLevel
+// TraceLog implements gaussdb.QueryTracer, gaussdb.BatchTracer, gaussdb.ConnectTracer, and gaussdb.CopyFromTracer. Logger and LogLevel
 // are required. Config will be automatically initialized on first use if nil.
 type TraceLog struct {
 	Logger   Logger
@@ -168,7 +168,7 @@ type traceQueryData struct {
 	args      []any
 }
 
-func (tl *TraceLog) TraceQueryStart(ctx context.Context, conn *pgx.Conn, data pgx.TraceQueryStartData) context.Context {
+func (tl *TraceLog) TraceQueryStart(ctx context.Context, conn *gaussdb.Conn, data gaussdb.TraceQueryStartData) context.Context {
 	return context.WithValue(ctx, tracelogQueryCtxKey, &traceQueryData{
 		startTime: time.Now(),
 		sql:       data.SQL,
@@ -176,7 +176,7 @@ func (tl *TraceLog) TraceQueryStart(ctx context.Context, conn *pgx.Conn, data pg
 	})
 }
 
-func (tl *TraceLog) TraceQueryEnd(ctx context.Context, conn *pgx.Conn, data pgx.TraceQueryEndData) {
+func (tl *TraceLog) TraceQueryEnd(ctx context.Context, conn *gaussdb.Conn, data gaussdb.TraceQueryEndData) {
 	tl.ensureConfig()
 	queryData := ctx.Value(tracelogQueryCtxKey).(*traceQueryData)
 
@@ -199,13 +199,13 @@ type traceBatchData struct {
 	startTime time.Time
 }
 
-func (tl *TraceLog) TraceBatchStart(ctx context.Context, conn *pgx.Conn, data pgx.TraceBatchStartData) context.Context {
+func (tl *TraceLog) TraceBatchStart(ctx context.Context, conn *gaussdb.Conn, data gaussdb.TraceBatchStartData) context.Context {
 	return context.WithValue(ctx, tracelogBatchCtxKey, &traceBatchData{
 		startTime: time.Now(),
 	})
 }
 
-func (tl *TraceLog) TraceBatchQuery(ctx context.Context, conn *pgx.Conn, data pgx.TraceBatchQueryData) {
+func (tl *TraceLog) TraceBatchQuery(ctx context.Context, conn *gaussdb.Conn, data gaussdb.TraceBatchQueryData) {
 	if data.Err != nil {
 		if tl.shouldLog(LogLevelError) {
 			tl.log(ctx, conn, LogLevelError, "BatchQuery", map[string]any{"sql": data.SQL, "args": logQueryArgs(data.Args), "err": data.Err})
@@ -218,7 +218,7 @@ func (tl *TraceLog) TraceBatchQuery(ctx context.Context, conn *pgx.Conn, data pg
 	}
 }
 
-func (tl *TraceLog) TraceBatchEnd(ctx context.Context, conn *pgx.Conn, data pgx.TraceBatchEndData) {
+func (tl *TraceLog) TraceBatchEnd(ctx context.Context, conn *gaussdb.Conn, data gaussdb.TraceBatchEndData) {
 	tl.ensureConfig()
 	queryData := ctx.Value(tracelogBatchCtxKey).(*traceBatchData)
 
@@ -239,11 +239,11 @@ func (tl *TraceLog) TraceBatchEnd(ctx context.Context, conn *pgx.Conn, data pgx.
 
 type traceCopyFromData struct {
 	startTime   time.Time
-	TableName   pgx.Identifier
+	TableName   gaussdb.Identifier
 	ColumnNames []string
 }
 
-func (tl *TraceLog) TraceCopyFromStart(ctx context.Context, conn *pgx.Conn, data pgx.TraceCopyFromStartData) context.Context {
+func (tl *TraceLog) TraceCopyFromStart(ctx context.Context, conn *gaussdb.Conn, data gaussdb.TraceCopyFromStartData) context.Context {
 	return context.WithValue(ctx, tracelogCopyFromCtxKey, &traceCopyFromData{
 		startTime:   time.Now(),
 		TableName:   data.TableName,
@@ -251,7 +251,7 @@ func (tl *TraceLog) TraceCopyFromStart(ctx context.Context, conn *pgx.Conn, data
 	})
 }
 
-func (tl *TraceLog) TraceCopyFromEnd(ctx context.Context, conn *pgx.Conn, data pgx.TraceCopyFromEndData) {
+func (tl *TraceLog) TraceCopyFromEnd(ctx context.Context, conn *gaussdb.Conn, data gaussdb.TraceCopyFromEndData) {
 	tl.ensureConfig()
 	copyFromData := ctx.Value(tracelogCopyFromCtxKey).(*traceCopyFromData)
 
@@ -272,17 +272,17 @@ func (tl *TraceLog) TraceCopyFromEnd(ctx context.Context, conn *pgx.Conn, data p
 
 type traceConnectData struct {
 	startTime  time.Time
-	connConfig *pgx.ConnConfig
+	connConfig *gaussdb.ConnConfig
 }
 
-func (tl *TraceLog) TraceConnectStart(ctx context.Context, data pgx.TraceConnectStartData) context.Context {
+func (tl *TraceLog) TraceConnectStart(ctx context.Context, data gaussdb.TraceConnectStartData) context.Context {
 	return context.WithValue(ctx, tracelogConnectCtxKey, &traceConnectData{
 		startTime:  time.Now(),
 		connConfig: data.ConnConfig,
 	})
 }
 
-func (tl *TraceLog) TraceConnectEnd(ctx context.Context, data pgx.TraceConnectEndData) {
+func (tl *TraceLog) TraceConnectEnd(ctx context.Context, data gaussdb.TraceConnectEndData) {
 	tl.ensureConfig()
 	connectData := ctx.Value(tracelogConnectCtxKey).(*traceConnectData)
 
@@ -320,7 +320,7 @@ type tracePrepareData struct {
 	sql       string
 }
 
-func (tl *TraceLog) TracePrepareStart(ctx context.Context, _ *pgx.Conn, data pgx.TracePrepareStartData) context.Context {
+func (tl *TraceLog) TracePrepareStart(ctx context.Context, _ *gaussdb.Conn, data gaussdb.TracePrepareStartData) context.Context {
 	return context.WithValue(ctx, tracelogPrepareCtxKey, &tracePrepareData{
 		startTime: time.Now(),
 		name:      data.Name,
@@ -328,7 +328,7 @@ func (tl *TraceLog) TracePrepareStart(ctx context.Context, _ *pgx.Conn, data pgx
 	})
 }
 
-func (tl *TraceLog) TracePrepareEnd(ctx context.Context, conn *pgx.Conn, data pgx.TracePrepareEndData) {
+func (tl *TraceLog) TracePrepareEnd(ctx context.Context, conn *gaussdb.Conn, data gaussdb.TracePrepareEndData) {
 	tl.ensureConfig()
 	prepareData := ctx.Value(tracelogPrepareCtxKey).(*tracePrepareData)
 
@@ -351,7 +351,7 @@ func (tl *TraceLog) shouldLog(lvl LogLevel) bool {
 	return tl.LogLevel >= lvl
 }
 
-func (tl *TraceLog) log(ctx context.Context, conn *pgx.Conn, lvl LogLevel, msg string, data map[string]any) {
+func (tl *TraceLog) log(ctx context.Context, conn *gaussdb.Conn, lvl LogLevel, msg string, data map[string]any) {
 	if data == nil {
 		data = map[string]any{}
 	}

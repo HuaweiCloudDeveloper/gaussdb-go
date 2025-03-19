@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"testing"
 
-	pgx "github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxtest"
+	pgx "github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,7 +30,7 @@ func isExpectedEqBytes(a any) func(any) bool {
 }
 
 func TestByteaCodec(t *testing.T) {
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "bytea", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "bytea", []gaussdbtest.ValueRoundTripTest{
 		{[]byte{1, 2, 3}, new([]byte), isExpectedEqBytes([]byte{1, 2, 3})},
 		{[]byte{}, new([]byte), isExpectedEqBytes([]byte{})},
 		{[]byte(nil), new([]byte), isExpectedEqBytes([]byte(nil))},
@@ -39,7 +39,7 @@ func TestByteaCodec(t *testing.T) {
 }
 
 func TestDriverBytesQueryRow(t *testing.T) {
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		var buf []byte
 		err := conn.QueryRow(ctx, `select $1::bytea`, []byte{1, 2}).Scan((*pgtype.DriverBytes)(&buf))
 		require.EqualError(t, err, "cannot scan into *pgtype.DriverBytes from QueryRow")
@@ -47,7 +47,7 @@ func TestDriverBytesQueryRow(t *testing.T) {
 }
 
 func TestDriverBytes(t *testing.T) {
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		argBuf := make([]byte, 128)
 		for i := range argBuf {
 			argBuf[i] = byte(i)
@@ -84,7 +84,7 @@ func TestDriverBytes(t *testing.T) {
 }
 
 func TestPreallocBytes(t *testing.T) {
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		origBuf := []byte{5, 6, 7, 8}
 		buf := origBuf
 		err := conn.QueryRow(ctx, `select $1::bytea`, []byte{1, 2}).Scan((*pgtype.PreallocBytes)(&buf))
@@ -106,7 +106,7 @@ func TestPreallocBytes(t *testing.T) {
 }
 
 func TestUndecodedBytes(t *testing.T) {
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		var buf []byte
 		err := conn.QueryRow(ctx, `select 1::int4`).Scan((*pgtype.UndecodedBytes)(&buf))
 		require.NoError(t, err)
@@ -117,7 +117,7 @@ func TestUndecodedBytes(t *testing.T) {
 }
 
 func TestByteaCodecDecodeDatabaseSQLValue(t *testing.T) {
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		var buf []byte
 		err := conn.QueryRow(ctx, `select '\xa1b2c3d4'::bytea`).Scan(sqlScannerFunc(func(src any) error {
 			switch src := src.(type) {

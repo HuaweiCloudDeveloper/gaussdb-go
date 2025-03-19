@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/jackc/pgx/v5/internal/pgio"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/pgio"
 )
 
 type BitsScanner interface {

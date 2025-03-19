@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"testing"
 
-	pgx "github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxtest"
+	pgx "github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -79,7 +79,7 @@ func TestNumericCodec(t *testing.T) {
 	max.Add(max, big.NewInt(1))
 	longestNumeric := pgtype.Numeric{Int: max, Exp: -16383, Valid: true}
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "numeric", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "numeric", []gaussdbtest.ValueRoundTripTest{
 		{mustParseNumeric(t, "1"), new(pgtype.Numeric), isExpectedEqNumeric(mustParseNumeric(t, "1"))},
 		{mustParseNumeric(t, "3.14159"), new(pgtype.Numeric), isExpectedEqNumeric(mustParseNumeric(t, "3.14159"))},
 		{mustParseNumeric(t, "100010001"), new(pgtype.Numeric), isExpectedEqNumeric(mustParseNumeric(t, "100010001"))},
@@ -122,7 +122,7 @@ func TestNumericCodec(t *testing.T) {
 		{pgtype.Numeric{NaN: true, Valid: true}, new(string), isExpectedEq("NaN")},
 	})
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "int8", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "int8", []gaussdbtest.ValueRoundTripTest{
 		{mustParseNumeric(t, "-1"), new(pgtype.Numeric), isExpectedEqNumeric(mustParseNumeric(t, "-1"))},
 		{mustParseNumeric(t, "0"), new(pgtype.Numeric), isExpectedEqNumeric(mustParseNumeric(t, "0"))},
 		{mustParseNumeric(t, "1"), new(pgtype.Numeric), isExpectedEqNumeric(mustParseNumeric(t, "1"))},
@@ -133,7 +133,7 @@ func TestNumericCodecInfinity(t *testing.T) {
 	skipCockroachDB(t, "server formats numeric text format differently")
 	skipPostgreSQLVersionLessThan(t, 14)
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "numeric", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "numeric", []gaussdbtest.ValueRoundTripTest{
 		{math.Inf(1), new(float64), isExpectedEq(math.Inf(1))},
 		{float32(math.Inf(1)), new(float32), isExpectedEq(float32(math.Inf(1)))},
 		{math.Inf(-1), new(float64), isExpectedEq(math.Inf(-1))},
@@ -176,28 +176,28 @@ func TestNumericCodecFuzz(t *testing.T) {
 	max := &big.Int{}
 	max.SetString("9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999", 10)
 
-	tests := make([]pgxtest.ValueRoundTripTest, 0, 2000)
+	tests := make([]gaussdbtest.ValueRoundTripTest, 0, 2000)
 	for i := 0; i < 10; i++ {
 		for j := -50; j < 50; j++ {
 			num := (&big.Int{}).Rand(r, max)
 
 			n := pgtype.Numeric{Int: num, Exp: int32(j), Valid: true}
-			tests = append(tests, pgxtest.ValueRoundTripTest{n, new(pgtype.Numeric), isExpectedEqNumeric(n)})
+			tests = append(tests, gaussdbtest.ValueRoundTripTest{n, new(pgtype.Numeric), isExpectedEqNumeric(n)})
 
 			negNum := &big.Int{}
 			negNum.Neg(num)
 			n = pgtype.Numeric{Int: negNum, Exp: int32(j), Valid: true}
-			tests = append(tests, pgxtest.ValueRoundTripTest{n, new(pgtype.Numeric), isExpectedEqNumeric(n)})
+			tests = append(tests, gaussdbtest.ValueRoundTripTest{n, new(pgtype.Numeric), isExpectedEqNumeric(n)})
 		}
 	}
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "numeric", tests)
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "numeric", tests)
 }
 
 func TestNumericMarshalJSON(t *testing.T) {
 	skipCockroachDB(t, "server formats numeric text format differently")
 
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 
 		for i, tt := range []struct {
 			decString string

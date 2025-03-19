@@ -1,4 +1,4 @@
-package pgxpool_test
+package gaussdbpool_test
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,7 +15,7 @@ func TestTxExec(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pool, err := pgxpool.New(ctx, os.Getenv("PGX_TEST_DATABASE"))
+	pool, err := gaussdbpool.New(ctx, os.Getenv("PGX_TEST_DATABASE"))
 	require.NoError(t, err)
 	defer pool.Close()
 
@@ -33,7 +32,7 @@ func TestTxQuery(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pool, err := pgxpool.New(ctx, os.Getenv("PGX_TEST_DATABASE"))
+	pool, err := gaussdbpool.New(ctx, os.Getenv("PGX_TEST_DATABASE"))
 	require.NoError(t, err)
 	defer pool.Close()
 
@@ -50,7 +49,7 @@ func TestTxQueryRow(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pool, err := pgxpool.New(ctx, os.Getenv("PGX_TEST_DATABASE"))
+	pool, err := gaussdbpool.New(ctx, os.Getenv("PGX_TEST_DATABASE"))
 	require.NoError(t, err)
 	defer pool.Close()
 
@@ -67,7 +66,7 @@ func TestTxSendBatch(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pool, err := pgxpool.New(ctx, os.Getenv("PGX_TEST_DATABASE"))
+	pool, err := gaussdbpool.New(ctx, os.Getenv("PGX_TEST_DATABASE"))
 	require.NoError(t, err)
 	defer pool.Close()
 
@@ -84,7 +83,7 @@ func TestTxCopyFrom(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	pool, err := pgxpool.New(ctx, os.Getenv("PGX_TEST_DATABASE"))
+	pool, err := gaussdbpool.New(ctx, os.Getenv("PGX_TEST_DATABASE"))
 	require.NoError(t, err)
 	defer pool.Close()
 

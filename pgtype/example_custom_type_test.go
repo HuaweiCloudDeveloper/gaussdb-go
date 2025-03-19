@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 // Point represents a point that may be null.
@@ -40,7 +40,7 @@ func (src *Point) String() string {
 }
 
 func Example_customType() {
-	conn, err := pgx.Connect(context.Background(), os.Getenv("PGX_TEST_DATABASE"))
+	conn, err := gaussdb.Connect(context.Background(), os.Getenv("PGX_TEST_DATABASE"))
 	if err != nil {
 		fmt.Printf("Unable to establish connection: %v", err)
 		return

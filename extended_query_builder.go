@@ -1,10 +1,10 @@
-package pgx
+package gaussdb
 
 import (
 	"fmt"
 
-	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 // ExtendedQueryBuilder is used to choose the parameter formats, to format the parameters and to choose the result

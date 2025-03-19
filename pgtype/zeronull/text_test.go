@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/jackc/pgx/v5/pgtype/zeronull"
-	"github.com/jackc/pgx/v5/pgxtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype/zeronull"
 )
 
 func TestTextTranscode(t *testing.T) {
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "text", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "text", []gaussdbtest.ValueRoundTripTest{
 		{
 			(zeronull.Text)("foo"),
 			new(zeronull.Text),

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
 )
 
 func Example_json() {
-	conn, err := pgx.Connect(context.Background(), os.Getenv("PGX_TEST_DATABASE"))
+	conn, err := gaussdb.Connect(context.Background(), os.Getenv("PGX_TEST_DATABASE"))
 	if err != nil {
 		fmt.Printf("Unable to establish connection: %v", err)
 		return

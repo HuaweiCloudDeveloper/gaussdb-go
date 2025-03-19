@@ -1,15 +1,15 @@
-// Package pgx is a PostgreSQL database driver.
+// package gaussdb is a PostgreSQL database driver.
 /*
 pgx provides a native PostgreSQL driver and can act as a database/sql driver. The native PostgreSQL interface is similar
 to the database/sql interface while providing better speed and access to PostgreSQL specific features. Use
-github.com/jackc/pgx/v5/stdlib to use pgx as a database/sql compatible driver. See that package's documentation for
+github.com/HuaweiCloudDeveloper/gaussdb-go/stdlib to use pgx as a database/sql compatible driver. See that package's documentation for
 details.
 
 Establishing a Connection
 
-The primary way of establishing a connection is with [pgx.Connect]:
+The primary way of establishing a connection is with [gaussdb.Connect]:
 
-    conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+    conn, err := gaussdb.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 
 The database connection string can be in URL or key/value format. Both PostgreSQL settings and pgx settings can be
 specified here. In addition, a config struct can be created by [ParseConfig] and modified before establishing the
@@ -18,8 +18,8 @@ string.
 
 Connection Pool
 
-[*pgx.Conn] represents a single connection to the database and is not concurrency safe. Use package
-github.com/jackc/pgx/v5/pgxpool for a concurrency safe connection pool.
+[*gaussdb.Conn] represents a single connection to the database and is not concurrency safe. Use package
+github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbpool for a concurrency safe connection pool.
 
 Query Interface
 
@@ -30,7 +30,7 @@ rows.Scan, and rows.Err().
 CollectRows can be used collect all returned rows into a slice.
 
     rows, _ := conn.Query(context.Background(), "select generate_series(1,$1)", 5)
-    numbers, err := pgx.CollectRows(rows, pgx.RowTo[int32])
+    numbers, err := gaussdb.CollectRows(rows, gaussdb.RowTo[int32])
     if err != nil {
       return err
     }
@@ -41,7 +41,7 @@ directly.
 
     var sum, n int32
     rows, _ := conn.Query(context.Background(), "select generate_series(1,$1)", 10)
-    _, err := pgx.ForEachRow(rows, []any{&n}, func() error {
+    _, err := gaussdb.ForEachRow(rows, []any{&n}, func() error {
       sum += n
       return nil
     })
@@ -105,7 +105,7 @@ a pseudo nested transaction.
 BeginFunc and BeginTxFunc are functions that begin a transaction, execute a function, and commit or rollback the
 transaction depending on the return value of the function. These can be simpler and less error prone to use.
 
-    err = pgx.BeginFunc(context.Background(), conn, func(tx pgx.Tx) error {
+    err = gaussdb.BeginFunc(context.Background(), conn, func(tx gaussdb.Tx) error {
         _, err := tx.Exec(context.Background(), "insert into foo(id) values (1)")
         return err
     })
@@ -133,9 +133,9 @@ Or implement CopyFromSource to avoid buffering the entire data set in memory.
 
     copyCount, err := conn.CopyFrom(
         context.Background(),
-        pgx.Identifier{"people"},
+        gaussdb.Identifier{"people"},
         []string{"first_name", "last_name", "age"},
-        pgx.CopyFromRows(rows),
+        gaussdb.CopyFromRows(rows),
     )
 
 When you already have a typed array using CopyFromSlice can be more convenient.
@@ -147,9 +147,9 @@ When you already have a typed array using CopyFromSlice can be more convenient.
 
     copyCount, err := conn.CopyFrom(
         context.Background(),
-        pgx.Identifier{"people"},
+        gaussdb.Identifier{"people"},
         []string{"first_name", "last_name", "age"},
-        pgx.CopyFromSlice(len(rows), func(i int) ([]any, error) {
+        gaussdb.CopyFromSlice(len(rows), func(i int) ([]any, error) {
             return []any{rows[i].FirstName, rows[i].LastName, rows[i].Age}, nil
         }),
     )
@@ -179,11 +179,11 @@ pgx supports tracing by setting ConnConfig.Tracer. To combine several tracers yo
 
 In addition, the tracelog package provides the TraceLog type which lets a traditional logger act as a Tracer.
 
-For debug tracing of the actual PostgreSQL wire protocol messages see github.com/jackc/pgx/v5/pgproto3.
+For debug tracing of the actual PostgreSQL wire protocol messages see github.com/HuaweiCloudDeveloper/gaussdb-go/pgproto3.
 
 Lower Level PostgreSQL Functionality
 
-github.com/jackc/pgx/v5/pgconn contains a lower level PostgreSQL driver roughly at the level of libpq. pgx.Conn in
+github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn contains a lower level PostgreSQL driver roughly at the level of libpq. gaussdb.Conn in
 implemented on top of pgconn. The Conn.PgConn() method can be used to access this lower layer.
 
 PgBouncer
@@ -191,4 +191,4 @@ PgBouncer
 By default pgx automatically uses prepared statements. Prepared statements are incompatible with PgBouncer. This can be
 disabled by setting a different QueryExecMode in ConnConfig.DefaultQueryExecMode.
 */
-package pgx
+package gaussdb

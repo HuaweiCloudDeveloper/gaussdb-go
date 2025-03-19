@@ -5,15 +5,15 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPointCodec(t *testing.T) {
 	skipCockroachDB(t, "Server does not support type point")
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "point", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "point", []gaussdbtest.ValueRoundTripTest{
 		{
 			pgtype.Point{P: pgtype.Vec2{1.234, 5.6789012345}, Valid: true},
 			new(pgtype.Point),

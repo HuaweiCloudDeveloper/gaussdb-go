@@ -28,6 +28,7 @@ type Frontend struct {
 	authenticationGSS               AuthenticationGSS
 	authenticationGSSContinue       AuthenticationGSSContinue
 	authenticationSASL              AuthenticationSASL
+	authenticationSHA256            AuthenticationSHA256 // todo GaussDB
 	authenticationSASLContinue      AuthenticationSASLContinue
 	authenticationSASLFinal         AuthenticationSASLFinal
 	backendKeyData                  BackendKeyData
@@ -58,6 +59,11 @@ type Frontend struct {
 	msgType    byte
 	partialMsg bool
 	authType   uint32
+
+	//passwordStoredMethod int    // todo GaussDB
+	//msgBody              []byte // todo GaussDB
+	//msgLength            int    // todo GaussDB
+	//header               []byte // todo GaussDB
 }
 
 // NewFrontend creates a new Frontend.
@@ -89,6 +95,15 @@ func (f *Frontend) Send(msg FrontendMessage) {
 	if f.tracer != nil {
 		f.tracer.traceMessage('F', int32(len(f.wbuf)-prevLen), msg)
 	}
+}
+
+// todo GaussDB
+func (f *Frontend) SendSha256(buf []byte) {
+	if f.encodeError != nil {
+		return
+	}
+
+	f.wbuf = buf
 }
 
 // Flush writes any pending messages to the backend (i.e. the server).
@@ -302,8 +317,9 @@ func translateEOFtoErrUnexpectedEOF(err error) error {
 	return err
 }
 
+// todo GaussDB back
 // Receive receives a message from the backend. The returned message is only valid until the next call to Receive.
-func (f *Frontend) Receive() (BackendMessage, error) {
+func (f *Frontend) Receive_back() (BackendMessage, error) {
 	if !f.partialMsg {
 		header, err := f.cr.Next(5)
 		if err != nil {
@@ -399,6 +415,108 @@ func (f *Frontend) Receive() (BackendMessage, error) {
 	return msg, nil
 }
 
+// todo GaussDB new
+// Receive receives a message from the backend. The returned message is only valid until the next call to Receive.
+func (f *Frontend) Receive() (BackendMessage, error) {
+	if !f.partialMsg {
+		header, err := f.cr.Next(5)
+		if err != nil {
+			return nil, translateEOFtoErrUnexpectedEOF(err)
+		}
+
+		f.msgType = header[0]
+
+		msgLength := int(binary.BigEndian.Uint32(header[1:]))
+		if msgLength < 4 {
+			return nil, fmt.Errorf("invalid message length: %d", msgLength)
+		}
+
+		f.bodyLen = msgLength - 4
+		if f.maxBodyLen > 0 && f.bodyLen > f.maxBodyLen {
+			return nil, &ExceededMaxBodyLenErr{f.maxBodyLen, f.bodyLen}
+		}
+
+		f.partialMsg = true
+	}
+
+	msgBody, err := f.cr.Next(f.bodyLen)
+	if err != nil {
+		return nil, translateEOFtoErrUnexpectedEOF(err)
+	}
+
+	// todo GaussDB
+	//msgBody := f.msgBody
+
+	f.partialMsg = false
+
+	var msg BackendMessage
+	switch f.msgType {
+	case '1':
+		msg = &f.parseComplete
+	case '2':
+		msg = &f.bindComplete
+	case '3':
+		msg = &f.closeComplete
+	case 'A':
+		msg = &f.notificationResponse
+	case 'c':
+		msg = &f.copyDone
+	case 'C':
+		msg = &f.commandComplete
+	case 'd':
+		msg = &f.copyData
+	case 'D':
+		msg = &f.dataRow
+	case 'E':
+		msg = &f.errorResponse
+	case 'G':
+		msg = &f.copyInResponse
+	case 'H':
+		msg = &f.copyOutResponse
+	case 'I':
+		msg = &f.emptyQueryResponse
+	case 'K':
+		msg = &f.backendKeyData
+	case 'n':
+		msg = &f.noData
+	case 'N':
+		msg = &f.noticeResponse
+	case 'R':
+		var err error
+		msg, err = f.findAuthenticationMessageType(msgBody)
+		if err != nil {
+			return nil, err
+		}
+	case 's':
+		msg = &f.portalSuspended
+	case 'S':
+		msg = &f.parameterStatus
+	case 't':
+		msg = &f.parameterDescription
+	case 'T':
+		msg = &f.rowDescription
+	case 'V':
+		msg = &f.functionCallResponse
+	case 'W':
+		msg = &f.copyBothResponse
+	case 'Z':
+		msg = &f.readyForQuery
+	default:
+		return nil, fmt.Errorf("unknown message type: %c", f.msgType)
+	}
+
+	err = msg.Decode(msgBody)
+	if err != nil {
+		return nil, err
+	}
+
+	if f.tracer != nil {
+		f.tracer.traceMessage('B', int32(5+len(msgBody)), msg)
+	}
+
+	return msg, nil
+}
+
 // Authentication message type constants.
 // See src/include/libpq/pqcomm.h for all
 // constants.
@@ -410,11 +528,50 @@ const (
 	AuthTypeGSS               = 7
 	AuthTypeGSSCont           = 8
 	AuthTypeSSPI              = 9
-	AuthTypeSASL              = 10
+	AuthTypeSASL              = 100
+	AuthTypeSHA256            = 10 // todo GaussDB
 	AuthTypeSASLContinue      = 11
 	AuthTypeSASLFinal         = 12
 )
 
+// todo GaussDB back
+func (f *Frontend) findAuthenticationMessageType_back(src []byte) (BackendMessage, error) {
+	if len(src) < 4 {
+		return nil, errors.New("authentication message too short")
+	}
+	f.authType = binary.BigEndian.Uint32(src[:4])
+
+	switch f.authType {
+	case AuthTypeOk:
+		return &f.authenticationOk, nil
+	case AuthTypeCleartextPassword:
+		return &f.authenticationCleartextPassword, nil
+	case AuthTypeMD5Password:
+		return &f.authenticationMD5Password, nil
+	case AuthTypeSCMCreds:
+		return nil, errors.New("AuthTypeSCMCreds is unimplemented")
+	case AuthTypeGSS:
+		return &f.authenticationGSS, nil
+	case AuthTypeGSSCont:
+		return &f.authenticationGSSContinue, nil
+	case AuthTypeSSPI:
+		return nil, errors.New("AuthTypeSSPI is unimplemented")
+	case AuthTypeSASL:
+		return &f.authenticationSASL, nil
+	// todo ---------- GaussDB start ----------
+	case AuthTypeSHA256:
+		return &f.authenticationSHA256, nil
+	// todo ---------- GaussDB start ----------
+	case AuthTypeSASLContinue:
+		return &f.authenticationSASLContinue, nil
+	case AuthTypeSASLFinal:
+		return &f.authenticationSASLFinal, nil
+	default:
+		return nil, fmt.Errorf("unknown authentication type: %d", f.authType)
+	}
+}
+
+// todo GaussDB new
 func (f *Frontend) findAuthenticationMessageType(src []byte) (BackendMessage, error) {
 	if len(src) < 4 {
 		return nil, errors.New("authentication message too short")
@@ -438,6 +595,10 @@ func (f *Frontend) findAuthenticationMessageType(src []byte) (BackendMessage, er
 		return nil, errors.New("AuthTypeSSPI is unimplemented")
 	case AuthTypeSASL:
 		return &f.authenticationSASL, nil
+	// todo ---------- GaussDB start ----------
+	case AuthTypeSHA256:
+		return &f.authenticationSHA256, nil
+	// todo ---------- GaussDB start ----------
 	case AuthTypeSASLContinue:
 		return &f.authenticationSASLContinue, nil
 	case AuthTypeSASLFinal:
@@ -466,3 +627,43 @@ func (f *Frontend) ReadBufferLen() int {
 func (f *Frontend) SetMaxBodyLen(maxBodyLen int) {
 	f.maxBodyLen = maxBodyLen
 }
+
+// todo ---------- GaussDB start ----------
+
+func (f *Frontend) GetCR() *chunkReader {
+	return f.cr
+}
+
+/*func (f *Frontend) SetHeader(header []byte) {
+	f.header = header
+}*/
+
+func (f *Frontend) SetAuthType(authType uint32) {
+	f.authType = authType
+}
+
+/*func (f *Frontend) SetPasswordStoredMethod(passwordStoredMethod int) {
+	f.passwordStoredMethod = passwordStoredMethod
+}*/
+
+/*func (f *Frontend) GetPasswordStoredMethod() int {
+	return f.passwordStoredMethod
+}*/
+
+/*func (f *Frontend) SetMsgBody(msgBody []byte) {
+	f.msgBody = msgBody
+}*/
+
+/*func (cr *chunkReader) SetRBuf(rBuf *bufio.Reader) {
+	cr.rBuf = rBuf
+}*/
+
+/*func (cr *chunkReader) SetPgConn(pgConn PgConn) {
+	cr.pgConn = pgConn
+}*/
+
+func (cr *chunkReader) SetBuf(buf *[]byte) {
+	cr.buf = buf
+}
+
+// todo ---------- GaussDB start ----------

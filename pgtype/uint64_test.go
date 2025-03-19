@@ -4,15 +4,15 @@ import (
 	"context"
 	"testing"
 
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 func TestUint64Codec(t *testing.T) {
 	skipCockroachDB(t, "Server does not support xid8 (https://github.com/cockroachdb/cockroach/issues/36815)")
 	skipPostgreSQLVersionLessThan(t, 13)
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, pgxtest.KnownOIDQueryExecModes, "xid8", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, gaussdbtest.KnownOIDQueryExecModes, "xid8", []gaussdbtest.ValueRoundTripTest{
 		{
 			pgtype.Uint64{Uint64: 1 << 36, Valid: true},
 			new(pgtype.Uint64),

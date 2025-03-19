@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -200,7 +200,7 @@ func TestParseConfig(t *testing.T) {
 		},
 		{
 			name:       "database url everything",
-			connString: "postgres://jack:secret@localhost:5432/mydb?sslmode=disable&application_name=pgxtest&search_path=myschema&connect_timeout=5",
+			connString: "postgres://jack:secret@localhost:5432/mydb?sslmode=disable&application_name=gaussdbtest&search_path=myschema&connect_timeout=5",
 			config: &pgconn.Config{
 				User:           "jack",
 				Password:       "secret",
@@ -210,7 +210,7 @@ func TestParseConfig(t *testing.T) {
 				TLSConfig:      nil,
 				ConnectTimeout: 5 * time.Second,
 				RuntimeParams: map[string]string{
-					"application_name": "pgxtest",
+					"application_name": "gaussdbtest",
 					"search_path":      "myschema",
 				},
 			},
@@ -338,7 +338,7 @@ func TestParseConfig(t *testing.T) {
 		},
 		{
 			name:       "Key/value everything",
-			connString: "user=jack password=secret host=localhost port=5432 dbname=mydb sslmode=disable application_name=pgxtest search_path=myschema connect_timeout=5",
+			connString: "user=jack password=secret host=localhost port=5432 dbname=mydb sslmode=disable application_name=gaussdbtest search_path=myschema connect_timeout=5",
 			config: &pgconn.Config{
 				User:           "jack",
 				Password:       "secret",
@@ -348,7 +348,7 @@ func TestParseConfig(t *testing.T) {
 				TLSConfig:      nil,
 				ConnectTimeout: 5 * time.Second,
 				RuntimeParams: map[string]string{
-					"application_name": "pgxtest",
+					"application_name": "gaussdbtest",
 					"search_path":      "myschema",
 				},
 			},
@@ -791,7 +791,7 @@ func TestParseConfigKVTrailingBackslash(t *testing.T) {
 }
 
 func TestConfigCopyReturnsEqualConfig(t *testing.T) {
-	connString := "postgres://jack:secret@localhost:5432/mydb?application_name=pgxtest&search_path=myschema&connect_timeout=5"
+	connString := "postgres://jack:secret@localhost:5432/mydb?application_name=gaussdbtest&search_path=myschema&connect_timeout=5"
 	original, err := pgconn.ParseConfig(connString)
 	require.NoError(t, err)
 
@@ -800,7 +800,7 @@ func TestConfigCopyReturnsEqualConfig(t *testing.T) {
 }
 
 func TestConfigCopyOriginalConfigDidNotChange(t *testing.T) {
-	connString := "postgres://jack:secret@localhost:5432/mydb?application_name=pgxtest&search_path=myschema&connect_timeout=5&sslmode=prefer"
+	connString := "postgres://jack:secret@localhost:5432/mydb?application_name=gaussdbtest&search_path=myschema&connect_timeout=5&sslmode=prefer"
 	original, err := pgconn.ParseConfig(connString)
 	require.NoError(t, err)
 
@@ -970,7 +970,7 @@ func TestParseConfigEnvLibpq(t *testing.T) {
 				"PGPASSWORD":        "baz",
 				"PGCONNECT_TIMEOUT": "10",
 				"PGSSLMODE":         "disable",
-				"PGAPPNAME":         "pgxtest",
+				"PGAPPNAME":         "gaussdbtest",
 			},
 			config: &pgconn.Config{
 				Host:           "123.123.123.123",
@@ -980,7 +980,7 @@ func TestParseConfigEnvLibpq(t *testing.T) {
 				Password:       "baz",
 				ConnectTimeout: 10 * time.Second,
 				TLSConfig:      nil,
-				RuntimeParams:  map[string]string{"application_name": "pgxtest"},
+				RuntimeParams:  map[string]string{"application_name": "gaussdbtest"},
 			},
 		},
 		{

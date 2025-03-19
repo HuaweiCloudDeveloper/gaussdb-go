@@ -1,16 +1,16 @@
-package pgx_test
+package gaussdb_test
 
 import (
 	"context"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
 	"os"
 	"testing"
 
-	"github.com/jackc/pgx/v5"
-	_ "github.com/jackc/pgx/v5/stdlib"
+	_ "github.com/HuaweiCloudDeveloper/gaussdb-go/stdlib"
 )
 
 func skipCockroachDB(t testing.TB, msg string) {
-	conn, err := pgx.Connect(context.Background(), os.Getenv("PGX_TEST_DATABASE"))
+	conn, err := gaussdb.Connect(context.Background(), os.Getenv("PGX_TEST_DATABASE"))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jackc/pgx/v5/internal/pgio"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/pgio"
 )
 
 const pgTimestamptzHourFormat = "2006-01-02 15:04:05.999999999Z07"

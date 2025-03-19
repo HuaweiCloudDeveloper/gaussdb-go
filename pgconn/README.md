@@ -1,7 +1,7 @@
 # pgconn
 
 Package pgconn is a low-level PostgreSQL database driver. It operates at nearly the same level as the C library libpq.
-It is primarily intended to serve as the foundation for higher level libraries such as https://github.com/jackc/pgx.
+It is primarily intended to serve as the foundation for higher level libraries such as https://github.com/jackc/gaussdb.
 Applications should handle normal queries with a higher level library and only use pgconn directly when required for
 low-level access to PostgreSQL functionality.
 

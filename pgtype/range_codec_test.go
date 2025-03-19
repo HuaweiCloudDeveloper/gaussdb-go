@@ -4,16 +4,16 @@ import (
 	"context"
 	"testing"
 
-	pgx "github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxtest"
+	pgx "github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 	"github.com/stretchr/testify/require"
 )
 
 func TestRangeCodecTranscode(t *testing.T) {
 	skipCockroachDB(t, "Server does not support range types (see https://github.com/cockroachdb/cockroach/issues/27791)")
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "int4range", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "int4range", []gaussdbtest.ValueRoundTripTest{
 		{
 			pgtype.Range[pgtype.Int4]{LowerType: pgtype.Empty, UpperType: pgtype.Empty, Valid: true},
 			new(pgtype.Range[pgtype.Int4]),
@@ -41,11 +41,11 @@ func TestRangeCodecTranscode(t *testing.T) {
 
 func TestRangeCodecTranscodeCompatibleRangeElementTypes(t *testing.T) {
 	ctr := defaultConnTestRunner
-	ctr.AfterConnect = func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
-		pgxtest.SkipCockroachDB(t, conn, "Server does not support range types (see https://github.com/cockroachdb/cockroach/issues/27791)")
+	ctr.AfterConnect = func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
+		gaussdbtest.SkipCockroachDB(t, conn, "Server does not support range types (see https://github.com/cockroachdb/cockroach/issues/27791)")
 	}
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, ctr, nil, "numrange", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, ctr, nil, "numrange", []gaussdbtest.ValueRoundTripTest{
 		{
 			pgtype.Range[pgtype.Float8]{LowerType: pgtype.Empty, UpperType: pgtype.Empty, Valid: true},
 			new(pgtype.Range[pgtype.Float8]),
@@ -74,7 +74,7 @@ func TestRangeCodecTranscodeCompatibleRangeElementTypes(t *testing.T) {
 func TestRangeCodecScanRangeTwiceWithUnbounded(t *testing.T) {
 	skipCockroachDB(t, "Server does not support range types (see https://github.com/cockroachdb/cockroach/issues/27791)")
 
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 
 		var r pgtype.Range[pgtype.Int4]
 
@@ -128,7 +128,7 @@ func TestRangeCodecScanRangeTwiceWithUnbounded(t *testing.T) {
 func TestRangeCodecDecodeValue(t *testing.T) {
 	skipCockroachDB(t, "Server does not support range types (see https://github.com/cockroachdb/cockroach/issues/27791)")
 
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, _ testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, _ testing.TB, conn *gaussdb.Conn) {
 
 		for _, tt := range []struct {
 			sql      string

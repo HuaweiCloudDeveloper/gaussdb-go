@@ -15,18 +15,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/jackc/pgx/v5/stdlib"
-	"github.com/jackc/pgx/v5/tracelog"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbpool"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/stdlib"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/tracelog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func openDB(t testing.TB) *sql.DB {
-	config, err := pgx.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
+	config, err := gaussdb.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
 	require.NoError(t, err)
 	return stdlib.OpenDB(*config)
 }
@@ -80,16 +80,16 @@ func skipPostgreSQLVersionLessThan(t testing.TB, db *sql.DB, minVersion int64) {
 }
 
 func testWithAllQueryExecModes(t *testing.T, f func(t *testing.T, db *sql.DB)) {
-	for _, mode := range []pgx.QueryExecMode{
-		pgx.QueryExecModeCacheStatement,
-		pgx.QueryExecModeCacheDescribe,
-		pgx.QueryExecModeDescribeExec,
-		pgx.QueryExecModeExec,
-		pgx.QueryExecModeSimpleProtocol,
+	for _, mode := range []gaussdb.QueryExecMode{
+		gaussdb.QueryExecModeCacheStatement,
+		gaussdb.QueryExecModeCacheDescribe,
+		gaussdb.QueryExecModeDescribeExec,
+		gaussdb.QueryExecModeExec,
+		gaussdb.QueryExecModeSimpleProtocol,
 	} {
 		t.Run(mode.String(),
 			func(t *testing.T) {
-				config, err := pgx.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
+				config, err := gaussdb.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
 				require.NoError(t, err)
 
 				config.DefaultQueryExecMode = mode
@@ -168,7 +168,7 @@ func TestSQLOpen(t *testing.T) {
 }
 
 func TestSQLOpenFromPool(t *testing.T) {
-	pool, err := pgxpool.New(context.Background(), os.Getenv("PGX_TEST_DATABASE"))
+	pool, err := gaussdbpool.New(context.Background(), os.Getenv("PGX_TEST_DATABASE"))
 	require.NoError(t, err)
 	t.Cleanup(pool.Close)
 
@@ -1146,7 +1146,7 @@ func (l *testLogger) Log(ctx context.Context, lvl tracelog.LogLevel, msg string,
 }
 
 func TestRegisterConnConfig(t *testing.T) {
-	connConfig, err := pgx.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
+	connConfig, err := gaussdb.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
 	require.NoError(t, err)
 
 	logger := &testLogger{}
@@ -1216,17 +1216,17 @@ func TestConnQueryRowConstraintErrors(t *testing.T) {
 }
 
 func TestOptionBeforeAfterConnect(t *testing.T) {
-	config, err := pgx.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
+	config, err := gaussdb.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
 	require.NoError(t, err)
 
-	var beforeConnConfigs []*pgx.ConnConfig
-	var afterConns []*pgx.Conn
+	var beforeConnConfigs []*gaussdb.ConnConfig
+	var afterConns []*gaussdb.Conn
 	db := stdlib.OpenDB(*config,
-		stdlib.OptionBeforeConnect(func(ctx context.Context, connConfig *pgx.ConnConfig) error {
+		stdlib.OptionBeforeConnect(func(ctx context.Context, connConfig *gaussdb.ConnConfig) error {
 			beforeConnConfigs = append(beforeConnConfigs, connConfig)
 			return nil
 		}),
-		stdlib.OptionAfterConnect(func(ctx context.Context, conn *pgx.Conn) error {
+		stdlib.OptionAfterConnect(func(ctx context.Context, conn *gaussdb.Conn) error {
 			afterConns = append(afterConns, conn)
 			return nil
 		}))
@@ -1251,7 +1251,7 @@ func TestOptionBeforeAfterConnect(t *testing.T) {
 }
 
 func TestRandomizeHostOrderFunc(t *testing.T) {
-	config, err := pgx.ParseConfig("postgres://host1,host2,host3")
+	config, err := gaussdb.ParseConfig("postgres://host1,host2,host3")
 	require.NoError(t, err)
 
 	// Test that at some point we connect to all 3 hosts
@@ -1291,10 +1291,10 @@ func TestRandomizeHostOrderFunc(t *testing.T) {
 func TestResetSessionHookCalled(t *testing.T) {
 	var mockCalled bool
 
-	connConfig, err := pgx.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
+	connConfig, err := gaussdb.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
 	require.NoError(t, err)
 
-	db := stdlib.OpenDB(*connConfig, stdlib.OptionResetSession(func(ctx context.Context, conn *pgx.Conn) error {
+	db := stdlib.OpenDB(*connConfig, stdlib.OptionResetSession(func(ctx context.Context, conn *gaussdb.Conn) error {
 		mockCalled = true
 
 		return nil

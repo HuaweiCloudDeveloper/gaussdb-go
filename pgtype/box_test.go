@@ -4,14 +4,14 @@ import (
 	"context"
 	"testing"
 
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 func TestBoxCodec(t *testing.T) {
 	skipCockroachDB(t, "Server does not support box type")
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "box", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "box", []gaussdbtest.ValueRoundTripTest{
 		{
 			pgtype.Box{
 				P:     [2]pgtype.Vec2{{7.1, 5.2345678}, {3.14, 1.678}},

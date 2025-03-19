@@ -1,20 +1,20 @@
-package pgxpool
+package gaussdbpool
 
 import (
 	"context"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
 )
 
 // Tx represents a database transaction acquired from a Pool.
 type Tx struct {
-	t pgx.Tx
+	t gaussdb.Tx
 	c *Conn
 }
 
 // Begin starts a pseudo nested transaction implemented with a savepoint.
-func (tx *Tx) Begin(ctx context.Context) (pgx.Tx, error) {
+func (tx *Tx) Begin(ctx context.Context) (gaussdb.Tx, error) {
 	return tx.t.Begin(ctx)
 }
 
@@ -43,15 +43,15 @@ func (tx *Tx) Rollback(ctx context.Context) error {
 	return err
 }
 
-func (tx *Tx) CopyFrom(ctx context.Context, tableName pgx.Identifier, columnNames []string, rowSrc pgx.CopyFromSource) (int64, error) {
+func (tx *Tx) CopyFrom(ctx context.Context, tableName gaussdb.Identifier, columnNames []string, rowSrc gaussdb.CopyFromSource) (int64, error) {
 	return tx.t.CopyFrom(ctx, tableName, columnNames, rowSrc)
 }
 
-func (tx *Tx) SendBatch(ctx context.Context, b *pgx.Batch) pgx.BatchResults {
+func (tx *Tx) SendBatch(ctx context.Context, b *gaussdb.Batch) gaussdb.BatchResults {
 	return tx.t.SendBatch(ctx, b)
 }
 
-func (tx *Tx) LargeObjects() pgx.LargeObjects {
+func (tx *Tx) LargeObjects() gaussdb.LargeObjects {
 	return tx.t.LargeObjects()
 }
 
@@ -70,14 +70,14 @@ func (tx *Tx) Exec(ctx context.Context, sql string, arguments ...any) (pgconn.Co
 	return tx.t.Exec(ctx, sql, arguments...)
 }
 
-func (tx *Tx) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+func (tx *Tx) Query(ctx context.Context, sql string, args ...any) (gaussdb.Rows, error) {
 	return tx.t.Query(ctx, sql, args...)
 }
 
-func (tx *Tx) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
+func (tx *Tx) QueryRow(ctx context.Context, sql string, args ...any) gaussdb.Row {
 	return tx.t.QueryRow(ctx, sql, args...)
 }
 
-func (tx *Tx) Conn() *pgx.Conn {
+func (tx *Tx) Conn() *gaussdb.Conn {
 	return tx.t.Conn()
 }

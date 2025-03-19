@@ -1,4 +1,4 @@
-package pgxpool_test
+package gaussdbpool_test
 
 import (
 	"context"
@@ -6,43 +6,41 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
 )
 
 type testTracer struct {
-	traceAcquireStart func(ctx context.Context, pool *pgxpool.Pool, data pgxpool.TraceAcquireStartData) context.Context
-	traceAcquireEnd   func(ctx context.Context, pool *pgxpool.Pool, data pgxpool.TraceAcquireEndData)
-	traceRelease      func(pool *pgxpool.Pool, data pgxpool.TraceReleaseData)
+	traceAcquireStart func(ctx context.Context, pool *gaussdbpool.Pool, data gaussdbpool.TraceAcquireStartData) context.Context
+	traceAcquireEnd   func(ctx context.Context, pool *gaussdbpool.Pool, data gaussdbpool.TraceAcquireEndData)
+	traceRelease      func(pool *gaussdbpool.Pool, data gaussdbpool.TraceReleaseData)
 }
 
 type ctxKey string
 
-func (tt *testTracer) TraceAcquireStart(ctx context.Context, pool *pgxpool.Pool, data pgxpool.TraceAcquireStartData) context.Context {
+func (tt *testTracer) TraceAcquireStart(ctx context.Context, pool *gaussdbpool.Pool, data gaussdbpool.TraceAcquireStartData) context.Context {
 	if tt.traceAcquireStart != nil {
 		return tt.traceAcquireStart(ctx, pool, data)
 	}
 	return ctx
 }
 
-func (tt *testTracer) TraceAcquireEnd(ctx context.Context, pool *pgxpool.Pool, data pgxpool.TraceAcquireEndData) {
+func (tt *testTracer) TraceAcquireEnd(ctx context.Context, pool *gaussdbpool.Pool, data gaussdbpool.TraceAcquireEndData) {
 	if tt.traceAcquireEnd != nil {
 		tt.traceAcquireEnd(ctx, pool, data)
 	}
 }
 
-func (tt *testTracer) TraceRelease(pool *pgxpool.Pool, data pgxpool.TraceReleaseData) {
+func (tt *testTracer) TraceRelease(pool *gaussdbpool.Pool, data gaussdbpool.TraceReleaseData) {
 	if tt.traceRelease != nil {
 		tt.traceRelease(pool, data)
 	}
 }
 
-func (tt *testTracer) TraceQueryStart(ctx context.Context, conn *pgx.Conn, data pgx.TraceQueryStartData) context.Context {
+func (tt *testTracer) TraceQueryStart(ctx context.Context, conn *gaussdb.Conn, data gaussdb.TraceQueryStartData) context.Context {
 	return ctx
 }
 
-func (tt *testTracer) TraceQueryEnd(ctx context.Context, conn *pgx.Conn, data pgx.TraceQueryEndData) {
+func (tt *testTracer) TraceQueryEnd(ctx context.Context, conn *gaussdb.Conn, data gaussdb.TraceQueryEndData) {
 }
 
 func TestTraceAcquire(t *testing.T) {
@@ -53,23 +51,23 @@ func TestTraceAcquire(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	config, err := pgxpool.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
+	config, err := gaussdbpool.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
 	require.NoError(t, err)
 	config.ConnConfig.Tracer = tracer
 
-	pool, err := pgxpool.NewWithConfig(ctx, config)
+	pool, err := gaussdbpool.NewWithConfig(ctx, config)
 	require.NoError(t, err)
 	defer pool.Close()
 
 	traceAcquireStartCalled := false
-	tracer.traceAcquireStart = func(ctx context.Context, pool *pgxpool.Pool, data pgxpool.TraceAcquireStartData) context.Context {
+	tracer.traceAcquireStart = func(ctx context.Context, pool *gaussdbpool.Pool, data gaussdbpool.TraceAcquireStartData) context.Context {
 		traceAcquireStartCalled = true
 		require.NotNil(t, pool)
 		return context.WithValue(ctx, ctxKey("fromTraceAcquireStart"), "foo")
 	}
 
 	traceAcquireEndCalled := false
-	tracer.traceAcquireEnd = func(ctx context.Context, pool *pgxpool.Pool, data pgxpool.TraceAcquireEndData) {
+	tracer.traceAcquireEnd = func(ctx context.Context, pool *gaussdbpool.Pool, data gaussdbpool.TraceAcquireEndData) {
 		traceAcquireEndCalled = true
 		require.Equal(t, "foo", ctx.Value(ctxKey("fromTraceAcquireStart")))
 		require.NotNil(t, pool)
@@ -85,7 +83,7 @@ func TestTraceAcquire(t *testing.T) {
 
 	traceAcquireStartCalled = false
 	traceAcquireEndCalled = false
-	tracer.traceAcquireEnd = func(ctx context.Context, pool *pgxpool.Pool, data pgxpool.TraceAcquireEndData) {
+	tracer.traceAcquireEnd = func(ctx context.Context, pool *gaussdbpool.Pool, data gaussdbpool.TraceAcquireEndData) {
 		traceAcquireEndCalled = true
 		require.NotNil(t, pool)
 		require.Nil(t, data.Conn)
@@ -108,16 +106,16 @@ func TestTraceRelease(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	config, err := pgxpool.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
+	config, err := gaussdbpool.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
 	require.NoError(t, err)
 	config.ConnConfig.Tracer = tracer
 
-	pool, err := pgxpool.NewWithConfig(ctx, config)
+	pool, err := gaussdbpool.NewWithConfig(ctx, config)
 	require.NoError(t, err)
 	defer pool.Close()
 
 	traceReleaseCalled := false
-	tracer.traceRelease = func(pool *pgxpool.Pool, data pgxpool.TraceReleaseData) {
+	tracer.traceRelease = func(pool *gaussdbpool.Pool, data gaussdbpool.TraceReleaseData) {
 		traceReleaseCalled = true
 		require.NotNil(t, pool)
 		require.NotNil(t, data.Conn)

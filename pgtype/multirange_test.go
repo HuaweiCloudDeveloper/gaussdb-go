@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"testing"
 
-	pgx "github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxtest"
+	pgx "github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,7 +15,7 @@ func TestMultirangeCodecTranscode(t *testing.T) {
 	skipPostgreSQLVersionLessThan(t, 14)
 	skipCockroachDB(t, "Server does not support range types (see https://github.com/cockroachdb/cockroach/issues/27791)")
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "int4multirange", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "int4multirange", []gaussdbtest.ValueRoundTripTest{
 		{
 			pgtype.Multirange[pgtype.Range[pgtype.Int4]](nil),
 			new(pgtype.Multirange[pgtype.Range[pgtype.Int4]]),
@@ -70,7 +70,7 @@ func TestMultirangeCodecDecodeValue(t *testing.T) {
 	skipPostgreSQLVersionLessThan(t, 14)
 	skipCockroachDB(t, "Server does not support range types (see https://github.com/cockroachdb/cockroach/issues/27791)")
 
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, _ testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, _ testing.TB, conn *gaussdb.Conn) {
 
 		for _, tt := range []struct {
 			sql      string

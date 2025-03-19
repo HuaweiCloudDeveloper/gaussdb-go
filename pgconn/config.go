@@ -17,10 +17,39 @@ import (
 	"strings"
 	"time"
 
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn/ctxwatch"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgproto3"
 	"github.com/jackc/pgpassfile"
 	"github.com/jackc/pgservicefile"
-	"github.com/jackc/pgx/v5/pgconn/ctxwatch"
-	"github.com/jackc/pgx/v5/pgproto3"
+)
+
+// todo GaussDB
+const (
+	paramClientEncoding              = "client_encoding"
+	paramAllowEncodingChanges        = "allow_encoding_changes"
+	paramLoggerLevel                 = "loggerLevel"
+	paramCpBufferSize                = "cp_buffer_size"
+	paramMinReadBufferSize           = "min_read_buffer_size"
+	paramTargetSessionAttrs          = "target_session_attrs"
+	paramHost                        = "host"
+	paramPort                        = "port"
+	paramDatabase                    = "database"
+	paramUser                        = "user"
+	paramPassword                    = "password"
+	paramPassFile                    = "passfile"
+	paramConnectTimeout              = "connect_timeout"
+	paramSSLMode                     = "sslmode"
+	paramSSLKey                      = "sslkey"
+	paramSSLCert                     = "sslcert"
+	paramSSLRootCert                 = "sslrootcert"
+	paramSSLinLine                   = "sslinline"
+	paramSSLPassword                 = "sslpassword"
+	paramService                     = "service"
+	paramKrbSrvName                  = "krbsrvname"
+	paramKrbSpn                      = "krbspn"
+	paramServiceFile                 = "servicefile"
+	paramDisablePreparedBinaryResult = "disable_prepared_binary_result"
+	paramApplicationName             = "application_name"
 )
 
 type AfterConnectFunc func(ctx context.Context, pgconn *PgConn) error
@@ -30,6 +59,8 @@ type GetSSLPasswordFunc func(ctx context.Context) string
 // Config is the settings used to establish a connection to a PostgreSQL server. It must be created by [ParseConfig]. A
 // manually initialized Config will cause ConnectConfig to panic.
 type Config struct {
+	minReadBufferSize int64 // The minimum size of the internal read buffer. Default 8192. todo GaussDB
+
 	Host           string // host (e.g. localhost) or absolute path to unix domain socket directory (e.g. /private/tmp)
 	Port           uint16
 	Database       string
@@ -248,7 +279,9 @@ func ParseConfigWithOptions(connString string, options ParseConfigOptions) (*Con
 	if connString != "" {
 		var err error
 		// connString may be a database URL or in PostgreSQL keyword/value format
-		if strings.HasPrefix(connString, "postgres://") || strings.HasPrefix(connString, "postgresql://") {
+		// todo 20250227
+		//if strings.HasPrefix(connString, "postgres://") || strings.HasPrefix(connString, "postgresql://") {
+		if strings.HasPrefix(connString, "gaussdb://") {
 			connStringSettings, err = parseURLSettings(connString)
 			if err != nil {
 				return nil, &ParseConfigError{ConnString: connString, msg: "failed to parse as URL", err: err}

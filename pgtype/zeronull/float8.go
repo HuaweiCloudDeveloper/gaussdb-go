@@ -3,7 +3,7 @@ package zeronull
 import (
 	"database/sql/driver"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 type Float8 float64

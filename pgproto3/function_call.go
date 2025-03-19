@@ -5,7 +5,7 @@ import (
 	"errors"
 	"math"
 
-	"github.com/jackc/pgx/v5/internal/pgio"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/internal/pgio"
 )
 
 type FunctionCall struct {

@@ -1,21 +1,21 @@
-package pgx_test
+package gaussdb_test
 
 import (
 	"context"
 	"fmt"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
 	"os"
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgxtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
 	"github.com/stretchr/testify/require"
 )
 
 func TestConnCopyWithAllQueryExecModes(t *testing.T) {
-	for _, mode := range pgxtest.AllQueryExecModes {
+	for _, mode := range gaussdbtest.AllQueryExecModes {
 		t.Run(mode.String(), func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 			defer cancel()
@@ -40,7 +40,7 @@ func TestConnCopyWithAllQueryExecModes(t *testing.T) {
 				{nil, nil, nil, nil, nil},
 			}
 
-			copyCount, err := conn.CopyFrom(ctx, pgx.Identifier{"foo"}, []string{"a", "b", "c", "d", "e"}, pgx.CopyFromRows(inputRows))
+			copyCount, err := conn.CopyFrom(ctx, gaussdb.Identifier{"foo"}, []string{"a", "b", "c", "d", "e"}, gaussdb.CopyFromRows(inputRows))
 			if err != nil {
 				t.Errorf("Unexpected error for CopyFrom: %v", err)
 			}
@@ -77,7 +77,7 @@ func TestConnCopyWithAllQueryExecModes(t *testing.T) {
 
 func TestConnCopyWithKnownOIDQueryExecModes(t *testing.T) {
 
-	for _, mode := range pgxtest.KnownOIDQueryExecModes {
+	for _, mode := range gaussdbtest.KnownOIDQueryExecModes {
 		t.Run(mode.String(), func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 			defer cancel()
@@ -104,7 +104,7 @@ func TestConnCopyWithKnownOIDQueryExecModes(t *testing.T) {
 				{nil, nil, nil, nil, nil, nil, nil},
 			}
 
-			copyCount, err := conn.CopyFrom(ctx, pgx.Identifier{"foo"}, []string{"a", "b", "c", "d", "e", "f", "g"}, pgx.CopyFromRows(inputRows))
+			copyCount, err := conn.CopyFrom(ctx, gaussdb.Identifier{"foo"}, []string{"a", "b", "c", "d", "e", "f", "g"}, gaussdb.CopyFromRows(inputRows))
 			if err != nil {
 				t.Errorf("Unexpected error for CopyFrom: %v", err)
 			}
@@ -165,7 +165,7 @@ func TestConnCopyFromSmall(t *testing.T) {
 		{nil, nil, nil, nil, nil, nil, nil},
 	}
 
-	copyCount, err := conn.CopyFrom(ctx, pgx.Identifier{"foo"}, []string{"a", "b", "c", "d", "e", "f", "g"}, pgx.CopyFromRows(inputRows))
+	copyCount, err := conn.CopyFrom(ctx, gaussdb.Identifier{"foo"}, []string{"a", "b", "c", "d", "e", "f", "g"}, gaussdb.CopyFromRows(inputRows))
 	if err != nil {
 		t.Errorf("Unexpected error for CopyFrom: %v", err)
 	}
@@ -224,8 +224,8 @@ func TestConnCopyFromSliceSmall(t *testing.T) {
 		{nil, nil, nil, nil, nil, nil, nil},
 	}
 
-	copyCount, err := conn.CopyFrom(ctx, pgx.Identifier{"foo"}, []string{"a", "b", "c", "d", "e", "f", "g"},
-		pgx.CopyFromSlice(len(inputRows), func(i int) ([]any, error) {
+	copyCount, err := conn.CopyFrom(ctx, gaussdb.Identifier{"foo"}, []string{"a", "b", "c", "d", "e", "f", "g"},
+		gaussdb.CopyFromSlice(len(inputRows), func(i int) ([]any, error) {
 			return inputRows[i], nil
 		}))
 	if err != nil {
@@ -288,7 +288,7 @@ func TestConnCopyFromLarge(t *testing.T) {
 		inputRows = append(inputRows, []any{int16(0), int32(1), int64(2), "abc", "efg", time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC), tzedTime, []byte{111, 111, 111, 111}})
 	}
 
-	copyCount, err := conn.CopyFrom(ctx, pgx.Identifier{"foo"}, []string{"a", "b", "c", "d", "e", "f", "g", "h"}, pgx.CopyFromRows(inputRows))
+	copyCount, err := conn.CopyFrom(ctx, gaussdb.Identifier{"foo"}, []string{"a", "b", "c", "d", "e", "f", "g", "h"}, gaussdb.CopyFromRows(inputRows))
 	if err != nil {
 		t.Errorf("Unexpected error for CopyFrom: %v", err)
 	}
@@ -369,7 +369,7 @@ func TestConnCopyFromEnum(t *testing.T) {
 		{nil, nil, nil, nil, nil, nil},
 	}
 
-	copyCount, err := tx.CopyFrom(ctx, pgx.Identifier{"foo"}, []string{"a", "b", "c", "d", "e", "f"}, pgx.CopyFromRows(inputRows))
+	copyCount, err := tx.CopyFrom(ctx, gaussdb.Identifier{"foo"}, []string{"a", "b", "c", "d", "e", "f"}, gaussdb.CopyFromRows(inputRows))
 	require.NoError(t, err)
 	require.EqualValues(t, len(inputRows), copyCount)
 
@@ -420,7 +420,7 @@ func TestConnCopyFromJSON(t *testing.T) {
 		{nil, nil},
 	}
 
-	copyCount, err := conn.CopyFrom(ctx, pgx.Identifier{"foo"}, []string{"a", "b"}, pgx.CopyFromRows(inputRows))
+	copyCount, err := conn.CopyFrom(ctx, gaussdb.Identifier{"foo"}, []string{"a", "b"}, gaussdb.CopyFromRows(inputRows))
 	if err != nil {
 		t.Errorf("Unexpected error for CopyFrom: %v", err)
 	}
@@ -495,12 +495,12 @@ func TestConnCopyFromFailServerSideMidway(t *testing.T) {
 		{int32(3), "def"},
 	}
 
-	copyCount, err := conn.CopyFrom(ctx, pgx.Identifier{"foo"}, []string{"a", "b"}, pgx.CopyFromRows(inputRows))
+	copyCount, err := conn.CopyFrom(ctx, gaussdb.Identifier{"foo"}, []string{"a", "b"}, gaussdb.CopyFromRows(inputRows))
 	if err == nil {
 		t.Errorf("Expected CopyFrom return error, but it did not")
 	}
 	if _, ok := err.(*pgconn.PgError); !ok {
-		t.Errorf("Expected CopyFrom return pgx.PgError, but instead it returned: %v", err)
+		t.Errorf("Expected CopyFrom return gaussdb.PgError, but instead it returned: %v", err)
 	}
 	if copyCount != 0 {
 		t.Errorf("Expected CopyFrom to return 0 copied rows, but got %d", copyCount)
@@ -563,7 +563,7 @@ func TestConnCopyFromFailServerSideMidwayAbortsWithoutWaiting(t *testing.T) {
 	conn := mustConnectString(t, os.Getenv("PGX_TEST_DATABASE"))
 	defer closeConn(t, conn)
 
-	pgxtest.SkipCockroachDB(t, conn, "Server copy error does not fail fast")
+	gaussdbtest.SkipCockroachDB(t, conn, "Server copy error does not fail fast")
 
 	mustExec(t, conn, `create temporary table foo(
 		a bytea not null
@@ -571,12 +571,12 @@ func TestConnCopyFromFailServerSideMidwayAbortsWithoutWaiting(t *testing.T) {
 
 	startTime := time.Now()
 
-	copyCount, err := conn.CopyFrom(ctx, pgx.Identifier{"foo"}, []string{"a"}, &failSource{})
+	copyCount, err := conn.CopyFrom(ctx, gaussdb.Identifier{"foo"}, []string{"a"}, &failSource{})
 	if err == nil {
 		t.Errorf("Expected CopyFrom return error, but it did not")
 	}
 	if _, ok := err.(*pgconn.PgError); !ok {
-		t.Errorf("Expected CopyFrom return pgx.PgError, but instead it returned: %v", err)
+		t.Errorf("Expected CopyFrom return gaussdb.PgError, but instead it returned: %v", err)
 	}
 	if copyCount != 0 {
 		t.Errorf("Expected CopyFrom to return 0 copied rows, but got %d", copyCount)
@@ -648,12 +648,12 @@ func TestConnCopyFromSlowFailRace(t *testing.T) {
 		b bytea not null
 	)`)
 
-	copyCount, err := conn.CopyFrom(ctx, pgx.Identifier{"foo"}, []string{"a", "b"}, &slowFailRaceSource{})
+	copyCount, err := conn.CopyFrom(ctx, gaussdb.Identifier{"foo"}, []string{"a", "b"}, &slowFailRaceSource{})
 	if err == nil {
 		t.Errorf("Expected CopyFrom return error, but it did not")
 	}
 	if _, ok := err.(*pgconn.PgError); !ok {
-		t.Errorf("Expected CopyFrom return pgx.PgError, but instead it returned: %v", err)
+		t.Errorf("Expected CopyFrom return gaussdb.PgError, but instead it returned: %v", err)
 	}
 	if copyCount != 0 {
 		t.Errorf("Expected CopyFrom to return 0 copied rows, but got %d", copyCount)
@@ -675,7 +675,7 @@ func TestConnCopyFromCopyFromSourceErrorMidway(t *testing.T) {
 		a bytea not null
 	)`)
 
-	copyCount, err := conn.CopyFrom(ctx, pgx.Identifier{"foo"}, []string{"a"}, &clientFailSource{})
+	copyCount, err := conn.CopyFrom(ctx, gaussdb.Identifier{"foo"}, []string{"a"}, &clientFailSource{})
 	if err == nil {
 		t.Errorf("Expected CopyFrom return error, but it did not")
 	}
@@ -738,7 +738,7 @@ func TestConnCopyFromCopyFromSourceErrorEnd(t *testing.T) {
 		a bytea not null
 	)`)
 
-	copyCount, err := conn.CopyFrom(ctx, pgx.Identifier{"foo"}, []string{"a"}, &clientFinalErrSource{})
+	copyCount, err := conn.CopyFrom(ctx, gaussdb.Identifier{"foo"}, []string{"a"}, &clientFinalErrSource{})
 	if err == nil {
 		t.Errorf("Expected CopyFrom return error, but it did not")
 	}
@@ -790,12 +790,12 @@ func TestConnCopyFromAutomaticStringConversion(t *testing.T) {
 		{8},
 	}
 
-	copyCount, err := conn.CopyFrom(ctx, pgx.Identifier{"foo"}, []string{"a"}, pgx.CopyFromRows(inputRows))
+	copyCount, err := conn.CopyFrom(ctx, gaussdb.Identifier{"foo"}, []string{"a"}, gaussdb.CopyFromRows(inputRows))
 	require.NoError(t, err)
 	require.EqualValues(t, len(inputRows), copyCount)
 
 	rows, _ := conn.Query(ctx, "select * from foo")
-	nums, err := pgx.CollectRows(rows, pgx.RowTo[int64])
+	nums, err := gaussdb.CollectRows(rows, gaussdb.RowTo[int64])
 	require.NoError(t, err)
 
 	require.Equal(t, []int64{42, 7, 8}, nums)
@@ -824,13 +824,13 @@ func TestConnCopyFromAutomaticStringConversionArray(t *testing.T) {
 		{[][]string{{"10", "11"}, {"12", "13"}}},
 	}
 
-	copyCount, err := conn.CopyFrom(ctx, pgx.Identifier{"foo"}, []string{"a"}, pgx.CopyFromRows(inputRows))
+	copyCount, err := conn.CopyFrom(ctx, gaussdb.Identifier{"foo"}, []string{"a"}, gaussdb.CopyFromRows(inputRows))
 	require.NoError(t, err)
 	require.EqualValues(t, len(inputRows), copyCount)
 
 	// Test reads as int64 and flattened array for simplicity.
 	rows, _ := conn.Query(ctx, "select * from foo")
-	nums, err := pgx.CollectRows(rows, pgx.RowTo[[]int64])
+	nums, err := gaussdb.CollectRows(rows, gaussdb.RowTo[[]int64])
 	require.NoError(t, err)
 	require.Equal(t, [][]int64{{42}, {7}, {8, 9}, {10, 11, 12, 13}}, nums)
 
@@ -857,8 +857,8 @@ func TestCopyFromFunc(t *testing.T) {
 		close(dataCh)
 	}()
 
-	copyCount, err := conn.CopyFrom(context.Background(), pgx.Identifier{"foo"}, []string{"a"},
-		pgx.CopyFromFunc(func() ([]any, error) {
+	copyCount, err := conn.CopyFrom(context.Background(), gaussdb.Identifier{"foo"}, []string{"a"},
+		gaussdb.CopyFromFunc(func() ([]any, error) {
 			v, ok := <-dataCh
 			if !ok {
 				return nil, nil
@@ -871,13 +871,13 @@ func TestCopyFromFunc(t *testing.T) {
 
 	rows, err := conn.Query(context.Background(), "select * from foo order by a")
 	require.NoError(t, err)
-	nums, err := pgx.CollectRows(rows, pgx.RowTo[int64])
+	nums, err := gaussdb.CollectRows(rows, gaussdb.RowTo[int64])
 	require.NoError(t, err)
 	require.Equal(t, []int64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, nums)
 
 	// simulate a failure
-	copyCount, err = conn.CopyFrom(context.Background(), pgx.Identifier{"foo"}, []string{"a"},
-		pgx.CopyFromFunc(func() func() ([]any, error) {
+	copyCount, err = conn.CopyFrom(context.Background(), gaussdb.Identifier{"foo"}, []string{"a"},
+		gaussdb.CopyFromFunc(func() func() ([]any, error) {
 			x := 9
 			return func() ([]any, error) {
 				x++

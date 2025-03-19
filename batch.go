@@ -1,11 +1,11 @@
-package pgx
+package gaussdb
 
 import (
 	"context"
 	"errors"
 	"fmt"
 
-	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
 )
 
 // QueuedQuery is a query that has been queued for execution via a Batch.

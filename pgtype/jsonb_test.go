@@ -6,9 +6,9 @@ import (
 	"reflect"
 	"testing"
 
-	pgx "github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxtest"
+	pgx "github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,7 +18,7 @@ func TestJSONBTranscode(t *testing.T) {
 		Age  int    `json:"age"`
 	}
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "jsonb", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "jsonb", []gaussdbtest.ValueRoundTripTest{
 		{nil, new(*jsonStruct), isExpectedEq((*jsonStruct)(nil))},
 		{map[string]any(nil), new(*string), isExpectedEq((*string)(nil))},
 		{map[string]any(nil), new([]byte), isExpectedEqBytes([]byte(nil))},
@@ -26,7 +26,7 @@ func TestJSONBTranscode(t *testing.T) {
 		{nil, new([]byte), isExpectedEqBytes([]byte(nil))},
 	})
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, pgxtest.KnownOIDQueryExecModes, "jsonb", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, gaussdbtest.KnownOIDQueryExecModes, "jsonb", []gaussdbtest.ValueRoundTripTest{
 		{[]byte("{}"), new([]byte), isExpectedEqBytes([]byte("{}"))},
 		{[]byte("null"), new([]byte), isExpectedEqBytes([]byte("null"))},
 		{[]byte("42"), new([]byte), isExpectedEqBytes([]byte("42"))},
@@ -38,7 +38,7 @@ func TestJSONBTranscode(t *testing.T) {
 }
 
 func TestJSONBCodecUnmarshalSQLNull(t *testing.T) {
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		// Slices are nilified
 		slice := []string{"foo", "bar", "baz"}
 		err := conn.QueryRow(ctx, "select null::jsonb").Scan(&slice)
@@ -76,7 +76,7 @@ func TestJSONBCodecUnmarshalSQLNull(t *testing.T) {
 
 // https://github.com/jackc/pgx/issues/1681
 func TestJSONBCodecEncodeJSONMarshalerThatCanBeWrapped(t *testing.T) {
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		var jsonStr string
 		err := conn.QueryRow(context.Background(), "select $1::jsonb", &ParentIssue1681{}).Scan(&jsonStr)
 		require.NoError(t, err)
@@ -86,7 +86,7 @@ func TestJSONBCodecEncodeJSONMarshalerThatCanBeWrapped(t *testing.T) {
 
 func TestJSONBCodecCustomMarshal(t *testing.T) {
 	connTestRunner := defaultConnTestRunner
-	connTestRunner.AfterConnect = func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	connTestRunner.AfterConnect = func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		conn.TypeMap().RegisterType(&pgtype.Type{
 			Name: "jsonb", OID: pgtype.JSONBOID, Codec: &pgtype.JSONBCodec{
 				Marshal: func(v any) ([]byte, error) {
@@ -98,7 +98,7 @@ func TestJSONBCodecCustomMarshal(t *testing.T) {
 			}})
 	}
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, connTestRunner, pgxtest.KnownOIDQueryExecModes, "jsonb", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, connTestRunner, gaussdbtest.KnownOIDQueryExecModes, "jsonb", []gaussdbtest.ValueRoundTripTest{
 		// There is space between "custom" and "value" in jsonb type.
 		{map[string]any{"something": "else"}, new(string), isExpectedEq(`{"custom": "value"}`)},
 		{[]byte(`{"something":"else"}`), new(map[string]any), func(v any) bool {

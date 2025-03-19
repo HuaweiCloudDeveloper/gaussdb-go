@@ -1,30 +1,30 @@
-package pgx_test
+package gaussdb_test
 
 import (
 	"context"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
 	"io"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgxtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
 )
 
 func TestLargeObjects(t *testing.T) {
 	// We use a very short limit to test chunking logic.
-	pgx.SetMaxLargeObjectMessageLength(t, 2)
+	gaussdb.SetMaxLargeObjectMessageLength(t, 2)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	conn, err := pgx.Connect(ctx, os.Getenv("PGX_TEST_DATABASE"))
+	conn, err := gaussdb.Connect(ctx, os.Getenv("PGX_TEST_DATABASE"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	pgxtest.SkipCockroachDB(t, conn, "Server does support large objects")
+	gaussdbtest.SkipCockroachDB(t, conn, "Server does support large objects")
 
 	tx, err := conn.Begin(ctx)
 	if err != nil {
@@ -36,24 +36,24 @@ func TestLargeObjects(t *testing.T) {
 
 func TestLargeObjectsSimpleProtocol(t *testing.T) {
 	// We use a very short limit to test chunking logic.
-	pgx.SetMaxLargeObjectMessageLength(t, 2)
+	gaussdb.SetMaxLargeObjectMessageLength(t, 2)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	config, err := pgx.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
+	config, err := gaussdb.ParseConfig(os.Getenv("PGX_TEST_DATABASE"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	config.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+	config.DefaultQueryExecMode = gaussdb.QueryExecModeSimpleProtocol
 
-	conn, err := pgx.ConnectConfig(ctx, config)
+	conn, err := gaussdb.ConnectConfig(ctx, config)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	pgxtest.SkipCockroachDB(t, conn, "Server does support large objects")
+	gaussdbtest.SkipCockroachDB(t, conn, "Server does support large objects")
 
 	tx, err := conn.Begin(ctx)
 	if err != nil {
@@ -63,7 +63,7 @@ func TestLargeObjectsSimpleProtocol(t *testing.T) {
 	testLargeObjects(t, ctx, tx)
 }
 
-func testLargeObjects(t *testing.T, ctx context.Context, tx pgx.Tx) {
+func testLargeObjects(t *testing.T, ctx context.Context, tx gaussdb.Tx) {
 	lo := tx.LargeObjects()
 
 	id, err := lo.Create(ctx, 0)
@@ -71,7 +71,7 @@ func testLargeObjects(t *testing.T, ctx context.Context, tx pgx.Tx) {
 		t.Fatal(err)
 	}
 
-	obj, err := lo.Open(ctx, id, pgx.LargeObjectModeRead|pgx.LargeObjectModeWrite)
+	obj, err := lo.Open(ctx, id, gaussdb.LargeObjectModeRead|gaussdb.LargeObjectModeWrite)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -155,7 +155,7 @@ func testLargeObjects(t *testing.T, ctx context.Context, tx pgx.Tx) {
 		t.Fatal(err)
 	}
 
-	_, err = lo.Open(ctx, id, pgx.LargeObjectModeRead)
+	_, err = lo.Open(ctx, id, gaussdb.LargeObjectModeRead)
 	if e, ok := err.(*pgconn.PgError); !ok || e.Code != "42704" {
 		t.Errorf("Expected undefined_object error (42704), got %#v", err)
 	}
@@ -163,17 +163,17 @@ func testLargeObjects(t *testing.T, ctx context.Context, tx pgx.Tx) {
 
 func TestLargeObjectsMultipleTransactions(t *testing.T) {
 	// We use a very short limit to test chunking logic.
-	pgx.SetMaxLargeObjectMessageLength(t, 2)
+	gaussdb.SetMaxLargeObjectMessageLength(t, 2)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
-	conn, err := pgx.Connect(ctx, os.Getenv("PGX_TEST_DATABASE"))
+	conn, err := gaussdb.Connect(ctx, os.Getenv("PGX_TEST_DATABASE"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	pgxtest.SkipCockroachDB(t, conn, "Server does support large objects")
+	gaussdbtest.SkipCockroachDB(t, conn, "Server does support large objects")
 
 	tx, err := conn.Begin(ctx)
 	if err != nil {
@@ -187,7 +187,7 @@ func TestLargeObjectsMultipleTransactions(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	obj, err := lo.Open(ctx, id, pgx.LargeObjectModeWrite)
+	obj, err := lo.Open(ctx, id, gaussdb.LargeObjectModeWrite)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -223,7 +223,7 @@ func TestLargeObjectsMultipleTransactions(t *testing.T) {
 	lo2 := tx2.LargeObjects()
 
 	// Reopen the large object in the new transaction
-	obj2, err := lo2.Open(ctx, id, pgx.LargeObjectModeRead|pgx.LargeObjectModeWrite)
+	obj2, err := lo2.Open(ctx, id, gaussdb.LargeObjectModeRead|gaussdb.LargeObjectModeWrite)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -299,7 +299,7 @@ func TestLargeObjectsMultipleTransactions(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = lo2.Open(ctx, id, pgx.LargeObjectModeRead)
+	_, err = lo2.Open(ctx, id, gaussdb.LargeObjectModeRead)
 	if e, ok := err.(*pgconn.PgError); !ok || e.Code != "42704" {
 		t.Errorf("Expected undefined_object error (42704), got %#v", err)
 	}

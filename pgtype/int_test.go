@@ -7,12 +7,12 @@ import (
 	"math"
 	"testing"
 
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 func TestInt2Codec(t *testing.T) {
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "int2", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "int2", []gaussdbtest.ValueRoundTripTest{
 		{int8(1), new(int16), isExpectedEq(int16(1))},
 		{int16(1), new(int16), isExpectedEq(int16(1))},
 		{int32(1), new(int16), isExpectedEq(int16(1))},
@@ -94,7 +94,7 @@ func TestInt2UnmarshalJSON(t *testing.T) {
 }
 
 func TestInt4Codec(t *testing.T) {
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "int4", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "int4", []gaussdbtest.ValueRoundTripTest{
 		{int8(1), new(int32), isExpectedEq(int32(1))},
 		{int16(1), new(int32), isExpectedEq(int32(1))},
 		{int32(1), new(int32), isExpectedEq(int32(1))},
@@ -176,7 +176,7 @@ func TestInt4UnmarshalJSON(t *testing.T) {
 }
 
 func TestInt8Codec(t *testing.T) {
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "int8", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "int8", []gaussdbtest.ValueRoundTripTest{
 		{int8(1), new(int64), isExpectedEq(int64(1))},
 		{int16(1), new(int64), isExpectedEq(int64(1))},
 		{int32(1), new(int64), isExpectedEq(int64(1))},

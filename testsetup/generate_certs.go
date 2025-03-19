@@ -1,4 +1,4 @@
-// Generates a CA, server certificate, and encrypted client certificate for testing pgx.
+// Generates a CA, server certificate, and encrypted client certificate for testing gaussdb.
 
 package main
 

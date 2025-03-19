@@ -1,4 +1,4 @@
-package pgx
+package gaussdb
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 )
 
 /*

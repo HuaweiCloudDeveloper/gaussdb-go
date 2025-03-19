@@ -6,7 +6,7 @@ import (
 	"net"
 	"testing"
 
-	"github.com/jackc/pgx/v5/pgxtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
 )
 
 func isExpectedEqHardwareAddr(a any) func(any) bool {
@@ -30,7 +30,7 @@ func TestMacaddrCodec(t *testing.T) {
 	skipCockroachDB(t, "Server does not support type macaddr")
 
 	// Only testing known OID query exec modes as net.HardwareAddr could map to macaddr or macaddr8.
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, pgxtest.KnownOIDQueryExecModes, "macaddr", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, gaussdbtest.KnownOIDQueryExecModes, "macaddr", []gaussdbtest.ValueRoundTripTest{
 		{
 			mustParseMacaddr(t, "01:23:45:67:89:ab"),
 			new(net.HardwareAddr),
@@ -49,7 +49,7 @@ func TestMacaddrCodec(t *testing.T) {
 		{nil, new(*net.HardwareAddr), isExpectedEq((*net.HardwareAddr)(nil))},
 	})
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, pgxtest.KnownOIDQueryExecModes, "macaddr8", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, gaussdbtest.KnownOIDQueryExecModes, "macaddr8", []gaussdbtest.ValueRoundTripTest{
 		{
 			mustParseMacaddr(t, "01:23:45:67:89:ab:01:08"),
 			new(net.HardwareAddr),

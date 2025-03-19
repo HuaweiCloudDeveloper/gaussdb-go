@@ -1,5 +1,5 @@
-// Package pgxtest provides utilities for testing pgx and packages that integrate with pgx.
-package pgxtest
+// package gaussdbtest provides utilities for testing pgx and packages that integrate with gaussdb.
+package gaussdbtest
 
 import (
 	"context"
@@ -9,53 +9,53 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go"
 )
 
-var AllQueryExecModes = []pgx.QueryExecMode{
-	pgx.QueryExecModeCacheStatement,
-	pgx.QueryExecModeCacheDescribe,
-	pgx.QueryExecModeDescribeExec,
-	pgx.QueryExecModeExec,
-	pgx.QueryExecModeSimpleProtocol,
+var AllQueryExecModes = []gaussdb.QueryExecMode{
+	gaussdb.QueryExecModeCacheStatement,
+	gaussdb.QueryExecModeCacheDescribe,
+	gaussdb.QueryExecModeDescribeExec,
+	gaussdb.QueryExecModeExec,
+	gaussdb.QueryExecModeSimpleProtocol,
 }
 
 // KnownOIDQueryExecModes is a slice of all query exec modes where the param and result OIDs are known before sending the query.
-var KnownOIDQueryExecModes = []pgx.QueryExecMode{
-	pgx.QueryExecModeCacheStatement,
-	pgx.QueryExecModeCacheDescribe,
-	pgx.QueryExecModeDescribeExec,
+var KnownOIDQueryExecModes = []gaussdb.QueryExecMode{
+	gaussdb.QueryExecModeCacheStatement,
+	gaussdb.QueryExecModeCacheDescribe,
+	gaussdb.QueryExecModeDescribeExec,
 }
 
-// ConnTestRunner controls how a *pgx.Conn is created and closed by tests. All fields are required. Use DefaultConnTestRunner to get a
+// ConnTestRunner controls how a *gaussdb.Conn is created and closed by tests. All fields are required. Use DefaultConnTestRunner to get a
 // ConnTestRunner with reasonable default values.
 type ConnTestRunner struct {
-	// CreateConfig returns a *pgx.ConnConfig suitable for use with pgx.ConnectConfig.
-	CreateConfig func(ctx context.Context, t testing.TB) *pgx.ConnConfig
+	// CreateConfig returns a *gaussdb.ConnConfig suitable for use with gaussdb.ConnectConfig.
+	CreateConfig func(ctx context.Context, t testing.TB) *gaussdb.ConnConfig
 
 	// AfterConnect is called after conn is established. It allows for arbitrary connection setup before a test begins.
-	AfterConnect func(ctx context.Context, t testing.TB, conn *pgx.Conn)
+	AfterConnect func(ctx context.Context, t testing.TB, conn *gaussdb.Conn)
 
 	// AfterTest is called after the test is run. It allows for validating the state of the connection before it is closed.
-	AfterTest func(ctx context.Context, t testing.TB, conn *pgx.Conn)
+	AfterTest func(ctx context.Context, t testing.TB, conn *gaussdb.Conn)
 
 	// CloseConn closes conn.
-	CloseConn func(ctx context.Context, t testing.TB, conn *pgx.Conn)
+	CloseConn func(ctx context.Context, t testing.TB, conn *gaussdb.Conn)
 }
 
 // DefaultConnTestRunner returns a new ConnTestRunner with all fields set to reasonable default values.
 func DefaultConnTestRunner() ConnTestRunner {
 	return ConnTestRunner{
-		CreateConfig: func(ctx context.Context, t testing.TB) *pgx.ConnConfig {
-			config, err := pgx.ParseConfig("")
+		CreateConfig: func(ctx context.Context, t testing.TB) *gaussdb.ConnConfig {
+			config, err := gaussdb.ParseConfig("")
 			if err != nil {
 				t.Fatalf("ParseConfig failed: %v", err)
 			}
 			return config
 		},
-		AfterConnect: func(ctx context.Context, t testing.TB, conn *pgx.Conn) {},
-		AfterTest:    func(ctx context.Context, t testing.TB, conn *pgx.Conn) {},
-		CloseConn: func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+		AfterConnect: func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {},
+		AfterTest:    func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {},
+		CloseConn: func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 			err := conn.Close(ctx)
 			if err != nil {
 				t.Errorf("Close failed: %v", err)
@@ -64,11 +64,11 @@ func DefaultConnTestRunner() ConnTestRunner {
 	}
 }
 
-func (ctr *ConnTestRunner) RunTest(ctx context.Context, t testing.TB, f func(ctx context.Context, t testing.TB, conn *pgx.Conn)) {
+func (ctr *ConnTestRunner) RunTest(ctx context.Context, t testing.TB, f func(ctx context.Context, t testing.TB, conn *gaussdb.Conn)) {
 	t.Helper()
 
 	config := ctr.CreateConfig(ctx, t)
-	conn, err := pgx.ConnectConfig(ctx, config)
+	conn, err := gaussdb.ConnectConfig(ctx, config)
 	if err != nil {
 		t.Fatalf("ConnectConfig failed: %v", err)
 	}
@@ -80,15 +80,15 @@ func (ctr *ConnTestRunner) RunTest(ctx context.Context, t testing.TB, f func(ctx
 }
 
 // RunWithQueryExecModes runs a f in a new test for each element of modes with a new connection created using connector.
-// If modes is nil all pgx.QueryExecModes are tested.
-func RunWithQueryExecModes(ctx context.Context, t *testing.T, ctr ConnTestRunner, modes []pgx.QueryExecMode, f func(ctx context.Context, t testing.TB, conn *pgx.Conn)) {
+// If modes is nil all gaussdb.QueryExecModes are tested.
+func RunWithQueryExecModes(ctx context.Context, t *testing.T, ctr ConnTestRunner, modes []gaussdb.QueryExecMode, f func(ctx context.Context, t testing.TB, conn *gaussdb.Conn)) {
 	if modes == nil {
 		modes = AllQueryExecModes
 	}
 
 	for _, mode := range modes {
 		ctrWithMode := ctr
-		ctrWithMode.CreateConfig = func(ctx context.Context, t testing.TB) *pgx.ConnConfig {
+		ctrWithMode.CreateConfig = func(ctx context.Context, t testing.TB) *gaussdb.ConnConfig {
 			config := ctr.CreateConfig(ctx, t)
 			config.DefaultQueryExecMode = mode
 			return config
@@ -112,7 +112,7 @@ func RunValueRoundTripTests(
 	ctx context.Context,
 	t testing.TB,
 	ctr ConnTestRunner,
-	modes []pgx.QueryExecMode,
+	modes []gaussdb.QueryExecMode,
 	pgTypeName string,
 	tests []ValueRoundTripTest,
 ) {
@@ -122,7 +122,7 @@ func RunValueRoundTripTests(
 		modes = AllQueryExecModes
 	}
 
-	ctr.RunTest(ctx, t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	ctr.RunTest(ctx, t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		t.Helper()
 
 		sql := fmt.Sprintf("select $1::%s", pgTypeName)
@@ -148,13 +148,13 @@ func RunValueRoundTripTests(
 }
 
 // SkipCockroachDB calls Skip on t with msg if the connection is to a CockroachDB server.
-func SkipCockroachDB(t testing.TB, conn *pgx.Conn, msg string) {
+func SkipCockroachDB(t testing.TB, conn *gaussdb.Conn, msg string) {
 	if conn.PgConn().ParameterStatus("crdb_version") != "" {
 		t.Skip(msg)
 	}
 }
 
-func SkipPostgreSQLVersionLessThan(t testing.TB, conn *pgx.Conn, minVersion int64) {
+func SkipPostgreSQLVersionLessThan(t testing.TB, conn *gaussdb.Conn, minVersion int64) {
 	serverVersionStr := conn.PgConn().ParameterStatus("server_version")
 	serverVersionStr = regexp.MustCompile(`^[0-9]+`).FindString(serverVersionStr)
 	// if not PostgreSQL do nothing

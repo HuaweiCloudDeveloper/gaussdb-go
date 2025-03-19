@@ -3,7 +3,7 @@ package stmtcache
 import (
 	"container/list"
 
-	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgconn"
 )
 
 // LRUCache implements Cache with a Least Recently Used (LRU) cache.

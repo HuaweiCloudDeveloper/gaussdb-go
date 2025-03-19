@@ -10,9 +10,9 @@ import (
 	"reflect"
 	"testing"
 
-	pgx "github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxtest"
+	pgx "github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtest"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/pgtype"
 	"github.com/stretchr/testify/require"
 )
 
@@ -50,7 +50,7 @@ func TestJSONCodec(t *testing.T) {
 	}
 
 	var str string
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "json", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "json", []gaussdbtest.ValueRoundTripTest{
 		{nil, new(*jsonStruct), isExpectedEq((*jsonStruct)(nil))},
 		{map[string]any(nil), new(*string), isExpectedEq((*string)(nil))},
 		{map[string]any(nil), new([]byte), isExpectedEqBytes([]byte(nil))},
@@ -72,7 +72,7 @@ func TestJSONCodec(t *testing.T) {
 		{NonPointerJSONScanner{V: stringPtr("{}")}, NonPointerJSONScanner{V: &str}, func(a any) bool { return str == "{}" }},
 	})
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, pgxtest.KnownOIDQueryExecModes, "json", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, gaussdbtest.KnownOIDQueryExecModes, "json", []gaussdbtest.ValueRoundTripTest{
 		{[]byte("{}"), new([]byte), isExpectedEqBytes([]byte("{}"))},
 		{[]byte("null"), new([]byte), isExpectedEqBytes([]byte("null"))},
 		{[]byte("42"), new([]byte), isExpectedEqBytes([]byte("42"))},
@@ -164,7 +164,7 @@ func (i NonPointerJSONScanner) Value() (driver.Value, error) {
 
 // https://github.com/jackc/pgx/issues/1273#issuecomment-1221414648
 func TestJSONCodecUnmarshalSQLNull(t *testing.T) {
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		// Slices are nilified
 		slice := []string{"foo", "bar", "baz"}
 		err := conn.QueryRow(ctx, "select null::json").Scan(&slice)
@@ -206,7 +206,7 @@ func TestJSONCodecUnmarshalSQLNull(t *testing.T) {
 
 // https://github.com/jackc/pgx/issues/1470
 func TestJSONCodecPointerToPointerToString(t *testing.T) {
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		var s *string
 		err := conn.QueryRow(ctx, "select '{}'::json").Scan(&s)
 		require.NoError(t, err)
@@ -221,7 +221,7 @@ func TestJSONCodecPointerToPointerToString(t *testing.T) {
 
 // https://github.com/jackc/pgx/issues/1691
 func TestJSONCodecPointerToPointerToInt(t *testing.T) {
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		n := 44
 		p := &n
 		err := conn.QueryRow(ctx, "select 'null'::jsonb").Scan(&p)
@@ -232,7 +232,7 @@ func TestJSONCodecPointerToPointerToInt(t *testing.T) {
 
 // https://github.com/jackc/pgx/issues/1691
 func TestJSONCodecPointerToPointerToStruct(t *testing.T) {
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		type ImageSize struct {
 			Height int    `json:"height"`
 			Width  int    `json:"width"`
@@ -246,7 +246,7 @@ func TestJSONCodecPointerToPointerToStruct(t *testing.T) {
 }
 
 func TestJSONCodecClearExistingValueBeforeUnmarshal(t *testing.T) {
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		m := map[string]any{}
 		err := conn.QueryRow(ctx, `select '{"foo": "bar"}'::json`).Scan(&m)
 		require.NoError(t, err)
@@ -276,7 +276,7 @@ func (t ChildIssue1681) MarshalJSON() ([]byte, error) {
 func TestJSONCodecEncodeJSONMarshalerThatCanBeWrapped(t *testing.T) {
 	skipCockroachDB(t, "CockroachDB treats json as jsonb. This causes it to format differently than PostgreSQL.")
 
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		var jsonStr string
 		err := conn.QueryRow(context.Background(), "select $1::json", &ParentIssue1681{}).Scan(&jsonStr)
 		require.NoError(t, err)
@@ -288,7 +288,7 @@ func TestJSONCodecCustomMarshal(t *testing.T) {
 	skipCockroachDB(t, "CockroachDB treats json as jsonb. This causes it to format differently than PostgreSQL.")
 
 	connTestRunner := defaultConnTestRunner
-	connTestRunner.AfterConnect = func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	connTestRunner.AfterConnect = func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		conn.TypeMap().RegisterType(&pgtype.Type{
 			Name: "json", OID: pgtype.JSONOID, Codec: &pgtype.JSONCodec{
 				Marshal: func(v any) ([]byte, error) {
@@ -301,7 +301,7 @@ func TestJSONCodecCustomMarshal(t *testing.T) {
 		})
 	}
 
-	pgxtest.RunValueRoundTripTests(context.Background(), t, connTestRunner, pgxtest.KnownOIDQueryExecModes, "json", []pgxtest.ValueRoundTripTest{
+	gaussdbtest.RunValueRoundTripTests(context.Background(), t, connTestRunner, gaussdbtest.KnownOIDQueryExecModes, "json", []gaussdbtest.ValueRoundTripTest{
 		// There is no space between "custom" and "value" in json type.
 		{map[string]any{"something": "else"}, new(string), isExpectedEq(`{"custom":"value"}`)},
 		{[]byte(`{"something":"else"}`), new(map[string]any), func(v any) bool {
@@ -311,7 +311,7 @@ func TestJSONCodecCustomMarshal(t *testing.T) {
 }
 
 func TestJSONCodecScanToNonPointerValues(t *testing.T) {
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		n := 44
 		err := conn.QueryRow(ctx, "select '42'::jsonb").Scan(n)
 		require.Error(t, err)
@@ -328,7 +328,7 @@ func TestJSONCodecScanToNonPointerValues(t *testing.T) {
 }
 
 func TestJSONCodecScanNull(t *testing.T) {
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		var dest struct{}
 		err := conn.QueryRow(ctx, "select null::jsonb").Scan(&dest)
 		require.Error(t, err)
@@ -350,7 +350,7 @@ func TestJSONCodecScanNull(t *testing.T) {
 }
 
 func TestJSONCodecScanNullToPointerToSQLScanner(t *testing.T) {
-	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdb.Conn) {
 		var dest *Issue2146
 		err := conn.QueryRow(ctx, "select null::jsonb").Scan(&dest)
 		require.NoError(t, err)
