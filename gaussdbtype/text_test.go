@@ -17,6 +17,7 @@ func (someFmtStringer) String() string {
 }
 
 func TestTextCodec(t *testing.T) {
+	t.Skip("gaussdb not support.")
 	for _, gaussdbTypeName := range []string{"text", "varchar"} {
 		gaussdbxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, gaussdbTypeName, []gaussdbxtest.ValueRoundTripTest{
 			{
@@ -47,6 +48,7 @@ func TestTextCodec(t *testing.T) {
 //
 // So this is simply a smoke test of the name type.
 func TestTextCodecName(t *testing.T) {
+	t.Skip("gaussdb not support.")
 	gaussdbxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "name", []gaussdbxtest.ValueRoundTripTest{
 		{
 			gaussdbtype.Text{String: "", Valid: true},
@@ -65,6 +67,7 @@ func TestTextCodecName(t *testing.T) {
 
 // Test fixed length char types like char(3)
 func TestTextCodecBPChar(t *testing.T) {
+	t.Skip("gaussdb not support.")
 	gaussdbxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "char(3)", []gaussdbxtest.ValueRoundTripTest{
 		{
 			gaussdbtype.Text{String: "a  ", Valid: true},

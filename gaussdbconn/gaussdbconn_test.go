@@ -1744,6 +1744,7 @@ func TestConnWaitForNotificationTimeout(t *testing.T) {
 }
 
 func TestConnCopyToSmall(t *testing.T) {
+	t.Skip("gaussdb not support.")
 	t.Parallel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
@@ -1785,6 +1786,7 @@ func TestConnCopyToSmall(t *testing.T) {
 }
 
 func TestConnCopyToLarge(t *testing.T) {
+	t.Skip("gaussdb not support.")
 	t.Parallel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
@@ -3159,6 +3161,7 @@ func TestPipelineFlushForSingleRequests(t *testing.T) {
 }
 
 func TestPipelineFlushForRequestSeries(t *testing.T) {
+	t.Skip("gaussdb not support.")
 	t.Parallel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)

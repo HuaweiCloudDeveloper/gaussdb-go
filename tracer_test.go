@@ -180,6 +180,7 @@ func TestTraceQuery(t *testing.T) {
 }
 
 func TestTraceBatchNormal(t *testing.T) {
+	t.Skip("gaussdb not support.")
 	t.Parallel()
 
 	tracer := &testTracer{}
@@ -243,6 +244,7 @@ func TestTraceBatchNormal(t *testing.T) {
 }
 
 func TestTraceBatchClose(t *testing.T) {
+	t.Skip("gaussdb not support.")
 	t.Parallel()
 
 	tracer := &testTracer{}

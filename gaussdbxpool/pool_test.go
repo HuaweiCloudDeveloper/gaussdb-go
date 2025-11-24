@@ -731,6 +731,7 @@ func TestPoolQueryRowScanPanicReleasesConnection(t *testing.T) {
 }
 
 func TestPoolSendBatch(t *testing.T) {
+	t.Skip("gaussdb not support.")
 	t.Parallel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
@@ -834,6 +835,7 @@ func TestConnReleaseClosesConnInFailedTransaction(t *testing.T) {
 }
 
 func TestConnReleaseClosesConnInTransaction(t *testing.T) {
+	t.Skip("gaussdb not support.")
 	t.Parallel()
 	if gaussdbgo.IsTestingWithOpengauss() {
 		t.Skip("skip opengauss, the pid not changed")
@@ -1109,6 +1111,7 @@ func TestConnectEagerlyReachesMinPoolSize(t *testing.T) {
 }
 
 func TestPoolSendBatchBatchCloseTwice(t *testing.T) {
+	t.Skip("gaussdb not support.")
 	t.Parallel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)

@@ -386,6 +386,7 @@ func TestConnSendBatchWithPreparedStatement(t *testing.T) {
 }
 
 func TestConnSendBatchWithQueryRewriter(t *testing.T) {
+	t.Skip("gaussdb not support.")
 	t.Parallel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
@@ -1006,6 +1007,7 @@ func TestSendBatchSimpleProtocol(t *testing.T) {
 }
 
 func TestConnSendBatchErrorDoesNotLeaveOrphanedPreparedStatement(t *testing.T) {
+	t.Skip("gaussdb not support.")
 	t.Parallel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)

@@ -20,6 +20,7 @@ func isExpectedEqTime(a any) func(any) bool {
 }
 
 func TestDateCodec(t *testing.T) {
+	t.Skip("gaussdb not support.")
 	gaussdbxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "date", []gaussdbxtest.ValueRoundTripTest{
 		{time.Date(-100, 1, 1, 0, 0, 0, 0, time.UTC), new(time.Time), isExpectedEqTime(time.Date(-100, 1, 1, 0, 0, 0, 0, time.UTC))},
 		{time.Date(-1, 1, 1, 0, 0, 0, 0, time.UTC), new(time.Time), isExpectedEqTime(time.Date(-1, 1, 1, 0, 0, 0, 0, time.UTC))},

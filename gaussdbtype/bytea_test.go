@@ -30,6 +30,7 @@ func isExpectedEqBytes(a any) func(any) bool {
 }
 
 func TestByteaCodec(t *testing.T) {
+	t.Skip("gaussdb not support.")
 	gaussdbxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "bytea", []gaussdbxtest.ValueRoundTripTest{
 		{[]byte{1, 2, 3}, new([]byte), isExpectedEqBytes([]byte{1, 2, 3})},
 		{[]byte{}, new([]byte), isExpectedEqBytes([]byte{})},

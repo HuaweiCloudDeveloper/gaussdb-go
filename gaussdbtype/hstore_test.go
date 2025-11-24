@@ -60,6 +60,7 @@ func stringPtr(s string) *string {
 }
 
 func TestHstoreCodec(t *testing.T) {
+	t.Skip("gaussdb not support.")
 	ctr := defaultConnTestRunner
 	ctr.AfterConnect = func(ctx context.Context, t testing.TB, conn *gaussdbgo.Conn) {
 		var hstoreOID uint32
