@@ -1744,7 +1744,6 @@ func TestConnWaitForNotificationTimeout(t *testing.T) {
 }
 
 func TestConnCopyToSmall(t *testing.T) {
-	t.Skip("gaussdb not support.")
 	t.Parallel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
@@ -1771,7 +1770,7 @@ func TestConnCopyToSmall(t *testing.T) {
 	_, err = gaussdbConn.Exec(ctx, `insert into foo values (null, null, null, null, null, null, null)`).ReadAll()
 	require.NoError(t, err)
 
-	inputBytes := []byte("0\t1\t2\tabc\tefg\t2000-01-01\t{\"abc\":\"def\",\"foo\":\"bar\"}\n" +
+	inputBytes := []byte("0\t1\t2\tabc\tefg\t2000-01-01 00:00:00\t{\"abc\":\"def\",\"foo\":\"bar\"}\n" +
 		"\\N\t\\N\t\\N\t\\N\t\\N\t\\N\t\\N\n")
 
 	outputWriter := bytes.NewBuffer(make([]byte, 0, len(inputBytes)))
@@ -1813,7 +1812,7 @@ func TestConnCopyToLarge(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		_, err = gaussdbConn.Exec(ctx, `insert into foo values (0, 1, 2, 'abc', 'efg', '2000-01-01', '{"abc":"def","foo":"bar"}', 'oooo')`).ReadAll()
 		require.NoError(t, err)
-		inputBytes = append(inputBytes, "0\t1\t2\tabc\tefg\t2000-01-01\t{\"abc\":\"def\",\"foo\":\"bar\"}\t\\\\x6f6f6f6f\n"...)
+		inputBytes = append(inputBytes, "0\t1\t2\tabc\tefg\t2000-01-01 00:00:00\t{\"abc\":\"def\",\"foo\":\"bar\"}\t\\\\x6f6f6f6f\n"...)
 	}
 
 	outputWriter := bytes.NewBuffer(make([]byte, 0, len(inputBytes)))
@@ -3161,7 +3160,6 @@ func TestPipelineFlushForSingleRequests(t *testing.T) {
 }
 
 func TestPipelineFlushForRequestSeries(t *testing.T) {
-	t.Skip("gaussdb not support.")
 	t.Parallel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
@@ -3190,9 +3188,11 @@ func TestPipelineFlushForRequestSeries(t *testing.T) {
 	require.Truef(t, ok, "expected PipelineSync, got: %#v", results)
 
 	pipeline.SendQueryPrepared(`ps`, [][]byte{[]byte("1")}, nil, nil)
+	pipeline.SendPipelineSync()
 	pipeline.SendQueryPrepared(`ps`, [][]byte{[]byte("2")}, nil, nil)
-	pipeline.SendFlushRequest()
+	pipeline.SendPipelineSync()
 	err = pipeline.Flush()
+
 	require.NoError(t, err)
 
 	results, err = pipeline.GetResults()
@@ -3204,6 +3204,8 @@ func TestPipelineFlushForRequestSeries(t *testing.T) {
 	require.Len(t, readResult.Rows, 1)
 	require.Len(t, readResult.Rows[0], 1)
 	require.Equal(t, "1", string(readResult.Rows[0][0]))
+	results, err = pipeline.GetResults()
+	require.NoError(t, err)
 
 	results, err = pipeline.GetResults()
 	require.NoError(t, err)
@@ -3217,18 +3219,16 @@ func TestPipelineFlushForRequestSeries(t *testing.T) {
 
 	results, err = pipeline.GetResults()
 	require.NoError(t, err)
-	require.Nil(t, results)
 
 	pipeline.SendQueryPrepared(`ps`, [][]byte{[]byte("3")}, nil, nil)
-	err = pipeline.Flush()
+	pipeline.SendPipelineSync()
 	require.NoError(t, err)
 
 	results, err = pipeline.GetResults()
 	require.NoError(t, err)
-	require.Nil(t, results)
 
 	pipeline.SendQueryPrepared(`ps`, [][]byte{[]byte("4")}, nil, nil)
-	pipeline.SendFlushRequest()
+	pipeline.SendPipelineSync()
 	err = pipeline.Flush()
 	require.NoError(t, err)
 
@@ -3241,6 +3241,8 @@ func TestPipelineFlushForRequestSeries(t *testing.T) {
 	require.Len(t, readResult.Rows, 1)
 	require.Len(t, readResult.Rows[0], 1)
 	require.Equal(t, "3", string(readResult.Rows[0][0]))
+	results, err = pipeline.GetResults()
+	require.NoError(t, err)
 
 	results, err = pipeline.GetResults()
 	require.NoError(t, err)
@@ -3254,17 +3256,16 @@ func TestPipelineFlushForRequestSeries(t *testing.T) {
 
 	results, err = pipeline.GetResults()
 	require.NoError(t, err)
-	require.Nil(t, results)
 
 	pipeline.SendQueryPrepared(`ps`, [][]byte{[]byte("5")}, nil, nil)
-	pipeline.SendFlushRequest()
+	pipeline.SendPipelineSync()
 
 	results, err = pipeline.GetResults()
 	require.NoError(t, err)
 	require.Nil(t, results)
 
 	pipeline.SendQueryPrepared(`ps`, [][]byte{[]byte("6")}, nil, nil)
-	pipeline.SendFlushRequest()
+	pipeline.SendPipelineSync()
 	err = pipeline.Flush()
 	require.NoError(t, err)
 
@@ -3277,6 +3278,8 @@ func TestPipelineFlushForRequestSeries(t *testing.T) {
 	require.Len(t, readResult.Rows, 1)
 	require.Len(t, readResult.Rows[0], 1)
 	require.Equal(t, "5", string(readResult.Rows[0][0]))
+	results, err = pipeline.GetResults()
+	require.NoError(t, err)
 
 	results, err = pipeline.GetResults()
 	require.NoError(t, err)
@@ -3290,7 +3293,6 @@ func TestPipelineFlushForRequestSeries(t *testing.T) {
 
 	results, err = pipeline.GetResults()
 	require.NoError(t, err)
-	require.Nil(t, results)
 
 	err = pipeline.Sync()
 	require.NoError(t, err)
