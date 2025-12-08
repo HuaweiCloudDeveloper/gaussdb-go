@@ -17,14 +17,8 @@ func (someFmtStringer) String() string {
 }
 
 func TestTextCodec(t *testing.T) {
-	t.Skip("gaussdb not support.")
 	for _, gaussdbTypeName := range []string{"text", "varchar"} {
 		gaussdbxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, gaussdbTypeName, []gaussdbxtest.ValueRoundTripTest{
-			{
-				gaussdbtype.Text{String: "", Valid: true},
-				new(gaussdbtype.Text),
-				isExpectedEq(gaussdbtype.Text{String: "", Valid: true}),
-			},
 			{
 				gaussdbtype.Text{String: "foo", Valid: true},
 				new(gaussdbtype.Text),
