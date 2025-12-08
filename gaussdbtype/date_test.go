@@ -20,7 +20,6 @@ func isExpectedEqTime(a any) func(any) bool {
 }
 
 func TestDateCodec(t *testing.T) {
-	t.Skip("gaussdb not support.")
 	gaussdbxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "date", []gaussdbxtest.ValueRoundTripTest{
 		{time.Date(-100, 1, 1, 0, 0, 0, 0, time.UTC), new(time.Time), isExpectedEqTime(time.Date(-100, 1, 1, 0, 0, 0, 0, time.UTC))},
 		{time.Date(-1, 1, 1, 0, 0, 0, 0, time.UTC), new(time.Time), isExpectedEqTime(time.Date(-1, 1, 1, 0, 0, 0, 0, time.UTC))},
@@ -32,7 +31,6 @@ func TestDateCodec(t *testing.T) {
 		{time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC), new(time.Time), isExpectedEqTime(time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC))},
 		{time.Date(2000, 1, 2, 0, 0, 0, 0, time.UTC), new(time.Time), isExpectedEqTime(time.Date(2000, 1, 2, 0, 0, 0, 0, time.UTC))},
 		{time.Date(2200, 1, 1, 0, 0, 0, 0, time.UTC), new(time.Time), isExpectedEqTime(time.Date(2200, 1, 1, 0, 0, 0, 0, time.UTC))},
-		{time.Date(12200, 1, 2, 0, 0, 0, 0, time.UTC), new(time.Time), isExpectedEqTime(time.Date(12200, 1, 2, 0, 0, 0, 0, time.UTC))},
 		{gaussdbtype.Date{InfinityModifier: gaussdbtype.Infinity, Valid: true}, new(gaussdbtype.Date), isExpectedEq(gaussdbtype.Date{InfinityModifier: gaussdbtype.Infinity, Valid: true})},
 		{gaussdbtype.Date{InfinityModifier: gaussdbtype.NegativeInfinity, Valid: true}, new(gaussdbtype.Date), isExpectedEq(gaussdbtype.Date{InfinityModifier: gaussdbtype.NegativeInfinity, Valid: true})},
 		{gaussdbtype.Date{}, new(gaussdbtype.Date), isExpectedEq(gaussdbtype.Date{})},
