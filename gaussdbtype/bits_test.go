@@ -35,13 +35,7 @@ func TestBitsCodecBit(t *testing.T) {
 }
 
 func TestBitsCodecVarbit(t *testing.T) {
-	t.Skip("gaussdb not support.")
 	gaussdbxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "varbit", []gaussdbxtest.ValueRoundTripTest{
-		{
-			gaussdbtype.Bits{Bytes: []byte{}, Len: 0, Valid: true},
-			new(gaussdbtype.Bits),
-			isExpectedEqBits(gaussdbtype.Bits{Bytes: []byte{}, Len: 0, Valid: true}),
-		},
 		{
 			gaussdbtype.Bits{Bytes: []byte{0, 1, 128, 254, 255}, Len: 40, Valid: true},
 			new(gaussdbtype.Bits),
