@@ -63,7 +63,6 @@ func TestConnQueryRow(t *testing.T) {
 }
 
 func TestConnSendBatch(t *testing.T) {
-	t.Skip("gaussdb not support.")
 	t.Parallel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
