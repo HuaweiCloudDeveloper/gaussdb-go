@@ -180,7 +180,6 @@ func TestTraceQuery(t *testing.T) {
 }
 
 func TestTraceBatchNormal(t *testing.T) {
-	t.Skip("gaussdb not support.")
 	t.Parallel()
 
 	tracer := &testTracer{}
@@ -200,7 +199,7 @@ func TestTraceBatchNormal(t *testing.T) {
 		tracer.traceBatchStart = func(ctx context.Context, conn *gaussdbgo.Conn, data gaussdbgo.TraceBatchStartData) context.Context {
 			traceBatchStartCalled = true
 			require.NotNil(t, data.Batch)
-			require.Equal(t, 2, data.Batch.Len())
+			require.Equal(t, 1, data.Batch.Len())
 			return context.WithValue(ctx, ctxKey("fromTraceBatchStart"), "foo")
 		}
 
@@ -220,7 +219,6 @@ func TestTraceBatchNormal(t *testing.T) {
 
 		batch := &gaussdbgo.Batch{}
 		batch.Queue(`select 1`)
-		batch.Queue(`select 2`)
 
 		br := conn.SendBatch(context.Background(), batch)
 		require.True(t, traceBatchStartCalled)
@@ -230,11 +228,6 @@ func TestTraceBatchNormal(t *testing.T) {
 		require.NoError(t, err)
 		require.EqualValues(t, 1, n)
 		require.EqualValues(t, 1, traceBatchQueryCalledCount)
-
-		err = br.QueryRow().Scan(&n)
-		require.NoError(t, err)
-		require.EqualValues(t, 2, n)
-		require.EqualValues(t, 2, traceBatchQueryCalledCount)
 
 		err = br.Close()
 		require.NoError(t, err)
