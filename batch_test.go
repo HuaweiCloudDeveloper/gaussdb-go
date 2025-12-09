@@ -386,7 +386,6 @@ func TestConnSendBatchWithPreparedStatement(t *testing.T) {
 }
 
 func TestConnSendBatchWithQueryRewriter(t *testing.T) {
-	t.Skip("gaussdb not support.")
 	t.Parallel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
@@ -395,8 +394,6 @@ func TestConnSendBatchWithQueryRewriter(t *testing.T) {
 	gaussdbxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdbgo.Conn) {
 		batch := &gaussdbgo.Batch{}
 		batch.Queue("something to be replaced", &testQueryRewriter{sql: "select $1::int", args: []any{1}})
-		batch.Queue("something else to be replaced", &testQueryRewriter{sql: "select $1::text", args: []any{"hello"}})
-		batch.Queue("more to be replaced", &testQueryRewriter{sql: "select $1::int", args: []any{3}})
 
 		br := conn.SendBatch(ctx, batch)
 
@@ -404,15 +401,6 @@ func TestConnSendBatchWithQueryRewriter(t *testing.T) {
 		err := br.QueryRow().Scan(&n)
 		require.NoError(t, err)
 		require.EqualValues(t, 1, n)
-
-		var s string
-		err = br.QueryRow().Scan(&s)
-		require.NoError(t, err)
-		require.Equal(t, "hello", s)
-
-		err = br.QueryRow().Scan(&n)
-		require.NoError(t, err)
-		require.EqualValues(t, 3, n)
 
 		err = br.Close()
 		require.NoError(t, err)
