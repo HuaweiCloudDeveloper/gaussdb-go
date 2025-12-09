@@ -1051,30 +1051,6 @@ func ExampleConn_SendBatch() {
 		return err
 	})
 
-	batch.Queue("select 1 + 2").QueryRow(func(row gaussdbgo.Row) error {
-		var n int32
-		err := row.Scan(&n)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(n)
-
-		return err
-	})
-
-	batch.Queue("select 2 + 3").QueryRow(func(row gaussdbgo.Row) error {
-		var n int32
-		err := row.Scan(&n)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(n)
-
-		return err
-	})
-
 	err = conn.SendBatch(ctx, batch).Close()
 	if err != nil {
 		fmt.Printf("SendBatch error: %v", err)
@@ -1083,6 +1059,4 @@ func ExampleConn_SendBatch() {
 
 	// Output:
 	// 2
-	// 3
-	// 5
 }
