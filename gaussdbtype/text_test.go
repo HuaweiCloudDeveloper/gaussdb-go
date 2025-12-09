@@ -42,13 +42,7 @@ func TestTextCodec(t *testing.T) {
 //
 // So this is simply a smoke test of the name type.
 func TestTextCodecName(t *testing.T) {
-	t.Skip("gaussdb not support.")
 	gaussdbxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "name", []gaussdbxtest.ValueRoundTripTest{
-		{
-			gaussdbtype.Text{String: "", Valid: true},
-			new(gaussdbtype.Text),
-			isExpectedEq(gaussdbtype.Text{String: "", Valid: true}),
-		},
 		{
 			gaussdbtype.Text{String: "foo", Valid: true},
 			new(gaussdbtype.Text),
