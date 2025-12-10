@@ -71,8 +71,8 @@ func TestConnQueryRowsFieldDescriptionsBeforeNext(t *testing.T) {
 	assert.Equal(t, "msg", rows.FieldDescriptions()[0].Name)
 }
 
-// todo GaussDB 暂时不支持 临时表Serial自增序列
-/*func TestConnQueryWithoutResultSetCommandTag(t *testing.T) {
+func TestConnQueryWithoutResultSetCommandTag(t *testing.T) {
+	t.Skip("GaussDB currently does not support serial auto-increment sequences for temporary tables.")
 	t.Parallel()
 
 	conn := mustConnectString(t, os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
@@ -83,7 +83,7 @@ func TestConnQueryRowsFieldDescriptionsBeforeNext(t *testing.T) {
 	rows.Close()
 	assert.NoError(t, rows.Err())
 	assert.Equal(t, "CREATE TABLE", rows.CommandTag().String())
-}*/
+}
 
 func TestConnQueryScanWithManyColumns(t *testing.T) {
 	t.Parallel()
