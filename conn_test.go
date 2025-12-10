@@ -810,35 +810,35 @@ func TestFatalRxError(t *testing.T) {
 	}
 }
 
-// todo: conn.GaussdbConn().PID() not return the right pid.
-//func TestFatalTxError(t *testing.T) {
-//	t.Parallel()
-//
-//	// Run timing sensitive test many times
-//	for i := 0; i < 50; i++ {
-//		func() {
-//			conn := mustConnectString(t, os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
-//			defer closeConn(t, conn)
-//
-//			otherConn := mustConnectString(t, os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
-//			defer otherConn.Close(context.Background())
-//
-//			_, err := otherConn.Exec(context.Background(), "select pg_terminate_backend($1)", conn.GaussdbConn().PID())
-//			if err != nil {
-//				t.Fatalf("Unable to kill backend GaussDB process: %v", err)
-//			}
-//
-//			err = conn.QueryRow(context.Background(), "select 1").Scan(nil)
-//			if err == nil {
-//				t.Fatal("Expected error but none occurred")
-//			}
-//
-//			if !conn.IsClosed() {
-//				t.Fatalf("Connection should be closed but isn't. Previous Query err: %v", err)
-//			}
-//		}()
-//	}
-//}
+func TestFatalTxError(t *testing.T) {
+	t.Skip("GaussDB does not return the correct PID")
+	t.Parallel()
+
+	// Run timing sensitive test many times
+	for i := 0; i < 50; i++ {
+		func() {
+			conn := mustConnectString(t, os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
+			defer closeConn(t, conn)
+
+			otherConn := mustConnectString(t, os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
+			defer otherConn.Close(context.Background())
+
+			_, err := otherConn.Exec(context.Background(), "select pg_terminate_backend($1)", conn.GaussdbConn().PID())
+			if err != nil {
+				t.Fatalf("Unable to kill backend GaussDB process: %v", err)
+			}
+
+			err = conn.QueryRow(context.Background(), "select 1").Scan(nil)
+			if err == nil {
+				t.Fatal("Expected error but none occurred")
+			}
+
+			if !conn.IsClosed() {
+				t.Fatalf("Connection should be closed but isn't. Previous Query err: %v", err)
+			}
+		}()
+	}
+}
 
 func TestInsertBoolArray(t *testing.T) {
 	t.Parallel()
