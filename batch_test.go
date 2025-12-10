@@ -249,47 +249,47 @@ func TestConnSendBatchQueuedQuery(t *testing.T) {
 	})
 }
 
-// todo: GaussD8 暂时不支持 临时表Serial自增序列
-//func TestConnSendBatchMany(t *testing.T) {
-//	t.Parallel()
-//
-//	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-//	defer cancel()
-//
-//	gaussdbxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdbgo.Conn) {
-//		sql := `create temporary table ledger(
-//	  id serial primary key,
-//	  description varchar not null,
-//	  amount int not null
-//	);`
-//		mustExec(t, conn, sql)
-//
-//		batch := &gaussdbgo.Batch{}
-//
-//		numInserts := 1000
-//
-//		for i := 0; i < numInserts; i++ {
-//			batch.Queue("insert into ledger(description, amount) values($1, $2)", "q1", 1)
-//		}
-//		batch.Queue("select count(*) from ledger")
-//
-//		br := conn.SendBatch(ctx, batch)
-//
-//		for i := 0; i < numInserts; i++ {
-//			ct, err := br.Exec()
-//			assert.NoError(t, err)
-//			assert.EqualValues(t, 1, ct.RowsAffected())
-//		}
-//
-//		var actualInserts int
-//		err := br.QueryRow().Scan(&actualInserts)
-//		assert.NoError(t, err)
-//		assert.EqualValues(t, numInserts, actualInserts)
-//
-//		err = br.Close()
-//		require.NoError(t, err)
-//	})
-//}
+func TestConnSendBatchMany(t *testing.T) {
+	t.Skip("GaussDB currently does not support serial auto-increment sequences for temporary tables.")
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
+	gaussdbxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdbgo.Conn) {
+		sql := `create temporary table ledger(
+	  id serial primary key,
+	  description varchar not null,
+	  amount int not null
+	);`
+		mustExec(t, conn, sql)
+
+		batch := &gaussdbgo.Batch{}
+
+		numInserts := 1000
+
+		for i := 0; i < numInserts; i++ {
+			batch.Queue("insert into ledger(description, amount) values($1, $2)", "q1", 1)
+		}
+		batch.Queue("select count(*) from ledger")
+
+		br := conn.SendBatch(ctx, batch)
+
+		for i := 0; i < numInserts; i++ {
+			ct, err := br.Exec()
+			assert.NoError(t, err)
+			assert.EqualValues(t, 1, ct.RowsAffected())
+		}
+
+		var actualInserts int
+		err := br.QueryRow().Scan(&actualInserts)
+		assert.NoError(t, err)
+		assert.EqualValues(t, numInserts, actualInserts)
+
+		err = br.Close()
+		require.NoError(t, err)
+	})
+}
 
 func TestConnSendBatchReadResultsWhenNothingQueued(t *testing.T) {
 	t.Parallel()
