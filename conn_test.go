@@ -662,8 +662,8 @@ func TestDeallocateMissingPreparedStatementStillClearsFromPreparedStatementMap(t
 	assert.Equal(t, "chat", notification.Channel)
 }*/
 
-// todo GaussDB 暂时不支持 LISTEN statement、NOFITY statement
-/*func TestListenNotifyWhileBusyIsSafe(t *testing.T) {
+func TestListenNotifyWhileBusyIsSafe(t *testing.T) {
+	t.Skip("GaussDB currently does not support the LISTEN and NOTIFY statements.")
 	t.Parallel()
 
 	func() {
@@ -737,7 +737,7 @@ func TestDeallocateMissingPreparedStatementStillClearsFromPreparedStatementMap(t
 
 	<-listenerDone
 	<-notifierDone
-}*/
+}
 
 func TestListenNotifySelfNotification(t *testing.T) {
 	t.Skip("LISTEN statement is not yet supported in GaussDB")
