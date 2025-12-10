@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -773,41 +774,41 @@ func TestListenNotifySelfNotification(t *testing.T) {
 	assert.Equal(t, "self", notification.Channel)
 }
 
-// todo: conn.GaussdbConn().PID() not return the right pid.
-//func TestFatalRxError(t *testing.T) {
-//	t.Parallel()
-//	envVar := os.Getenv(gaussdbgo.EnvGaussdbTestDatabase)
-//
-//	conn := mustConnectString(t, envVar)
-//	defer closeConn(t, conn)
-//
-//	var wg sync.WaitGroup
-//	wg.Add(1)
-//	go func() {
-//		defer wg.Done()
-//		var n int32
-//		var s string
-//		err := conn.QueryRow(context.Background(), "select 1::int4, pg_sleep(10)::varchar").Scan(&n, &s)
-//		gaussdbErr, ok := err.(*gaussdbconn.GaussdbError)
-//		if !(ok && gaussdbErr.Severity == "FATAL") {
-//			t.Errorf("Expected QueryRow Scan to return fatal GaussdbError, but instead received %v", err)
-//			return
-//		}
-//	}()
-//
-//	otherConn := mustConnectString(t, envVar)
-//	defer otherConn.Close(context.Background())
-//
-//	if _, err := otherConn.Exec(context.Background(), "select pg_terminate_backend($1)", conn.GaussdbConn().PID()); err != nil {
-//		t.Fatalf("Unable to kill backend GaussDB process: %v", err)
-//	}
-//
-//	wg.Wait()
-//
-//	if !conn.IsClosed() {
-//		t.Fatal("Connection should be closed")
-//	}
-//}
+func TestFatalRxError(t *testing.T) {
+	t.Skip("GaussDB does not return the correct PID")
+	t.Parallel()
+	envVar := os.Getenv(gaussdbgo.EnvGaussdbTestDatabase)
+
+	conn := mustConnectString(t, envVar)
+	defer closeConn(t, conn)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var n int32
+		var s string
+		err := conn.QueryRow(context.Background(), "select 1::int4, pg_sleep(10)::varchar").Scan(&n, &s)
+		gaussdbErr, ok := err.(*gaussdbconn.GaussdbError)
+		if !(ok && gaussdbErr.Severity == "FATAL") {
+			t.Errorf("Expected QueryRow Scan to return fatal GaussdbError, but instead received %v", err)
+			return
+		}
+	}()
+
+	otherConn := mustConnectString(t, envVar)
+	defer otherConn.Close(context.Background())
+
+	if _, err := otherConn.Exec(context.Background(), "select pg_terminate_backend($1)", conn.GaussdbConn().PID()); err != nil {
+		t.Fatalf("Unable to kill backend GaussDB process: %v", err)
+	}
+
+	wg.Wait()
+
+	if !conn.IsClosed() {
+		t.Fatal("Connection should be closed")
+	}
+}
 
 // todo: conn.GaussdbConn().PID() not return the right pid.
 //func TestFatalTxError(t *testing.T) {
