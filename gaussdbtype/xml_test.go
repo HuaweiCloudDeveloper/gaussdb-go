@@ -2,10 +2,12 @@ package gaussdbtype_test
 
 import (
 	"context"
+	"database/sql"
 	"encoding/xml"
 	"testing"
 
 	gaussdbx "github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbxtest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -16,35 +18,35 @@ type xmlStruct struct {
 	Age     int      `xml:"age,attr"`
 }
 
-// todo: ERROR: unsupported XML feature (SQLSTATE 0A000)
-//func TestXMLCodec(t *testing.T) {
-//	skipCockroachDB(t, "CockroachDB does not support XML.")
-//	gaussdbxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "xml", []gaussdbxtest.ValueRoundTripTest{
-//		{nil, new(*xmlStruct), isExpectedEq((*xmlStruct)(nil))},
-//		{map[string]any(nil), new(*string), isExpectedEq((*string)(nil))},
-//		{map[string]any(nil), new([]byte), isExpectedEqBytes([]byte(nil))},
-//		{[]byte(nil), new([]byte), isExpectedEqBytes([]byte(nil))},
-//		{nil, new([]byte), isExpectedEqBytes([]byte(nil))},
-//
-//		// Test sql.Scanner.
-//		{"", new(sql.NullString), isExpectedEq(sql.NullString{String: "", Valid: true})},
-//
-//		// Test driver.Valuer.
-//		{sql.NullString{String: "", Valid: true}, new(sql.NullString), isExpectedEq(sql.NullString{String: "", Valid: true})},
-//	})
-//
-//	gaussdbxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, gaussdbxtest.KnownOIDQueryExecModes, "xml", []gaussdbxtest.ValueRoundTripTest{
-//		{[]byte(`<?xml version="1.0"?><Root></Root>`), new([]byte), isExpectedEqBytes([]byte(`<Root></Root>`))},
-//		{[]byte(`<?xml version="1.0"?>`), new([]byte), isExpectedEqBytes([]byte(``))},
-//		{[]byte(`<?xml version="1.0"?>`), new(string), isExpectedEq(``)},
-//		{[]byte(`<Root></Root>`), new([]byte), isExpectedEqBytes([]byte(`<Root></Root>`))},
-//		{[]byte(`<Root></Root>`), new(string), isExpectedEq(`<Root></Root>`)},
-//		{[]byte(""), new([]byte), isExpectedEqBytes([]byte(""))},
-//		{xmlStruct{Name: "Adam", Age: 10}, new(xmlStruct), isExpectedEq(xmlStruct{XMLName: xml.Name{Local: "person"}, Name: "Adam", Age: 10})},
-//		{xmlStruct{XMLName: xml.Name{Local: "person"}, Name: "Adam", Age: 10}, new(xmlStruct), isExpectedEq(xmlStruct{XMLName: xml.Name{Local: "person"}, Name: "Adam", Age: 10})},
-//		{[]byte(`<person age="10"><name>Adam</name></person>`), new(xmlStruct), isExpectedEq(xmlStruct{XMLName: xml.Name{Local: "person"}, Name: "Adam", Age: 10})},
-//	})
-//}
+func TestXMLCodec(t *testing.T) {
+	t.Skip("GaussDB throws an 'invalid XML content' error.")
+	skipCockroachDB(t, "CockroachDB does not support XML.")
+	gaussdbxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "xml", []gaussdbxtest.ValueRoundTripTest{
+		{nil, new(*xmlStruct), isExpectedEq((*xmlStruct)(nil))},
+		{map[string]any(nil), new(*string), isExpectedEq((*string)(nil))},
+		{map[string]any(nil), new([]byte), isExpectedEqBytes([]byte(nil))},
+		{[]byte(nil), new([]byte), isExpectedEqBytes([]byte(nil))},
+		{nil, new([]byte), isExpectedEqBytes([]byte(nil))},
+
+		// Test sql.Scanner.
+		{"", new(sql.NullString), isExpectedEq(sql.NullString{String: "", Valid: true})},
+
+		// Test driver.Valuer.
+		{sql.NullString{String: "", Valid: true}, new(sql.NullString), isExpectedEq(sql.NullString{String: "", Valid: true})},
+	})
+
+	gaussdbxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, gaussdbxtest.KnownOIDQueryExecModes, "xml", []gaussdbxtest.ValueRoundTripTest{
+		{[]byte(`<?xml version="1.0"?><Root></Root>`), new([]byte), isExpectedEqBytes([]byte(`<Root></Root>`))},
+		{[]byte(`<?xml version="1.0"?>`), new([]byte), isExpectedEqBytes([]byte(``))},
+		{[]byte(`<?xml version="1.0"?>`), new(string), isExpectedEq(``)},
+		{[]byte(`<Root></Root>`), new([]byte), isExpectedEqBytes([]byte(`<Root></Root>`))},
+		{[]byte(`<Root></Root>`), new(string), isExpectedEq(`<Root></Root>`)},
+		{[]byte(""), new([]byte), isExpectedEqBytes([]byte(""))},
+		{xmlStruct{Name: "Adam", Age: 10}, new(xmlStruct), isExpectedEq(xmlStruct{XMLName: xml.Name{Local: "person"}, Name: "Adam", Age: 10})},
+		{xmlStruct{XMLName: xml.Name{Local: "person"}, Name: "Adam", Age: 10}, new(xmlStruct), isExpectedEq(xmlStruct{XMLName: xml.Name{Local: "person"}, Name: "Adam", Age: 10})},
+		{[]byte(`<person age="10"><name>Adam</name></person>`), new(xmlStruct), isExpectedEq(xmlStruct{XMLName: xml.Name{Local: "person"}, Name: "Adam", Age: 10})},
+	})
+}
 
 func TestXMLCodecUnmarshalSQLNull(t *testing.T) {
 	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdbx.Conn) {
