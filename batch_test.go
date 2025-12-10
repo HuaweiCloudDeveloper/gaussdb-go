@@ -637,46 +637,46 @@ func TestConnSendBatchQueryRowInsert(t *testing.T) {
 	})
 }
 
-// todo: GaussD8 暂时不支持 临时表Serial自增序列
-//func TestConnSendBatchQueryPartialReadInsert(t *testing.T) {
-//	t.Parallel()
-//
-//	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-//	defer cancel()
-//
-//	gaussdbxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdbgo.Conn) {
-//
-//		sql := `create temporary table ledger(
-//	  id serial primary key,
-//	  description varchar not null,
-//	  amount int not null
-//	);`
-//		mustExec(t, conn, sql)
-//
-//		batch := &gaussdbgo.Batch{}
-//		batch.Queue("select 1 union all select 2 union all select 3")
-//		batch.Queue("insert into ledger(description, amount) values($1, $2),($1, $2)", "q1", 1)
-//
-//		br := conn.SendBatch(ctx, batch)
-//
-//		rows, err := br.Query()
-//		if err != nil {
-//			t.Error(err)
-//		}
-//		rows.Close()
-//
-//		ct, err := br.Exec()
-//		if err != nil {
-//			t.Error(err)
-//		}
-//		if ct.RowsAffected() != 2 {
-//			t.Errorf("ct.RowsAffected() => %v, want %v", ct.RowsAffected(), 2)
-//		}
-//
-//		br.Close()
-//
-//	})
-//}
+func TestConnSendBatchQueryPartialReadInsert(t *testing.T) {
+	t.Skip("GaussDB currently does not support serial auto-increment sequences for temporary tables.")
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
+	gaussdbxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdbgo.Conn) {
+
+		sql := `create temporary table ledger(
+	  id serial primary key,
+	  description varchar not null,
+	  amount int not null
+	);`
+		mustExec(t, conn, sql)
+
+		batch := &gaussdbgo.Batch{}
+		batch.Queue("select 1 union all select 2 union all select 3")
+		batch.Queue("insert into ledger(description, amount) values($1, $2),($1, $2)", "q1", 1)
+
+		br := conn.SendBatch(ctx, batch)
+
+		rows, err := br.Query()
+		if err != nil {
+			t.Error(err)
+		}
+		rows.Close()
+
+		ct, err := br.Exec()
+		if err != nil {
+			t.Error(err)
+		}
+		if ct.RowsAffected() != 2 {
+			t.Errorf("ct.RowsAffected() => %v, want %v", ct.RowsAffected(), 2)
+		}
+
+		br.Close()
+
+	})
+}
 
 func TestTxSendBatch(t *testing.T) {
 	t.Parallel()
