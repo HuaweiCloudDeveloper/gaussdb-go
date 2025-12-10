@@ -82,6 +82,18 @@ func mustParseMacaddr(t testing.TB, s string) net.HardwareAddr {
 	return addr
 }
 
+func skipCockroachDB(t testing.TB, msg string) {
+	conn, err := gaussdbgo.Connect(context.Background(), os.Getenv("PGX_TEST_DATABASE"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Close(context.Background())
+
+	if conn.GaussdbConn().ParameterStatus("crdb_version") != "" {
+		t.Skip(msg)
+	}
+}
+
 // sqlScannerFunc lets an arbitrary function be used as a sql.Scanner.
 type sqlScannerFunc func(src any) error
 
