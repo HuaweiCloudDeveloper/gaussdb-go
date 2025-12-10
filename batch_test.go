@@ -153,101 +153,101 @@ func TestConnSendBatch(t *testing.T) {
 	})
 }
 
-// todo: GaussD8 暂时不支持 临时表Serial自增序列
-//func TestConnSendBatchQueuedQuery(t *testing.T) {
-//	t.Parallel()
-//
-//	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-//	defer cancel()
-//
-//	gaussdbxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdbgo.Conn) {
-//
-//		sql := `create temporary table ledger(
-//	  id serial primary key,
-//	  description varchar not null,
-//	  amount int not null
-//	);`
-//		mustExec(t, conn, sql)
-//
-//		batch := &gaussdbgo.Batch{}
-//
-//		batch.Queue("insert into ledger(description, amount) values($1, $2)", "q1", 1).Exec(func(ct gaussdbconn.CommandTag) error {
-//			assert.EqualValues(t, 1, ct.RowsAffected())
-//			return nil
-//		})
-//
-//		batch.Queue("insert into ledger(description, amount) values($1, $2)", "q2", 2).Exec(func(ct gaussdbconn.CommandTag) error {
-//			assert.EqualValues(t, 1, ct.RowsAffected())
-//			return nil
-//		})
-//
-//		batch.Queue("insert into ledger(description, amount) values($1, $2)", "q3", 3).Exec(func(ct gaussdbconn.CommandTag) error {
-//			assert.EqualValues(t, 1, ct.RowsAffected())
-//			return nil
-//		})
-//
-//		selectFromLedgerExpectedRows := []struct {
-//			id          int32
-//			description string
-//			amount      int32
-//		}{
-//			{1, "q1", 1},
-//			{2, "q2", 2},
-//			{3, "q3", 3},
-//		}
-//
-//		batch.Queue("select id, description, amount from ledger order by id").Query(func(rows gaussdbgo.Rows) error {
-//			rowCount := 0
-//			var id int32
-//			var description string
-//			var amount int32
-//			_, err := gaussdbgo.ForEachRow(rows, []any{&id, &description, &amount}, func() error {
-//				assert.Equal(t, selectFromLedgerExpectedRows[rowCount].id, id)
-//				assert.Equal(t, selectFromLedgerExpectedRows[rowCount].description, description)
-//				assert.Equal(t, selectFromLedgerExpectedRows[rowCount].amount, amount)
-//				rowCount++
-//
-//				return nil
-//			})
-//			assert.NoError(t, err)
-//			return nil
-//		})
-//
-//		batch.Queue("select id, description, amount from ledger order by id").Query(func(rows gaussdbgo.Rows) error {
-//			rowCount := 0
-//			var id int32
-//			var description string
-//			var amount int32
-//			_, err := gaussdbgo.ForEachRow(rows, []any{&id, &description, &amount}, func() error {
-//				assert.Equal(t, selectFromLedgerExpectedRows[rowCount].id, id)
-//				assert.Equal(t, selectFromLedgerExpectedRows[rowCount].description, description)
-//				assert.Equal(t, selectFromLedgerExpectedRows[rowCount].amount, amount)
-//				rowCount++
-//
-//				return nil
-//			})
-//			assert.NoError(t, err)
-//			return nil
-//		})
-//
-//		batch.Queue("select * from ledger where false").QueryRow(func(row gaussdbgo.Row) error {
-//			err := row.Scan(nil, nil, nil)
-//			assert.ErrorIs(t, err, gaussdbgo.ErrNoRows)
-//			return nil
-//		})
-//
-//		batch.Queue("select sum(amount) from ledger").QueryRow(func(row gaussdbgo.Row) error {
-//			var sumAmount int32
-//			err := row.Scan(&sumAmount)
-//			assert.NoError(t, err)
-//			assert.EqualValues(t, 6, sumAmount)
-//			return nil
-//		})
-//
-//		err := conn.SendBatch(ctx, batch).Close()
-//		assert.NoError(t, err)
-//	})
-//}
+func TestConnSendBatchQueuedQuery(t *testing.T) {
+	t.Skip("GaussDB currently does not support serial auto-increment sequences for temporary tables.")
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
+	gaussdbxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdbgo.Conn) {
+
+		sql := `create temporary table ledger(
+	  id serial primary key,
+	  description varchar not null,
+	  amount int not null
+	);`
+		mustExec(t, conn, sql)
+
+		batch := &gaussdbgo.Batch{}
+
+		batch.Queue("insert into ledger(description, amount) values($1, $2)", "q1", 1).Exec(func(ct gaussdbconn.CommandTag) error {
+			assert.EqualValues(t, 1, ct.RowsAffected())
+			return nil
+		})
+
+		batch.Queue("insert into ledger(description, amount) values($1, $2)", "q2", 2).Exec(func(ct gaussdbconn.CommandTag) error {
+			assert.EqualValues(t, 1, ct.RowsAffected())
+			return nil
+		})
+
+		batch.Queue("insert into ledger(description, amount) values($1, $2)", "q3", 3).Exec(func(ct gaussdbconn.CommandTag) error {
+			assert.EqualValues(t, 1, ct.RowsAffected())
+			return nil
+		})
+
+		selectFromLedgerExpectedRows := []struct {
+			id          int32
+			description string
+			amount      int32
+		}{
+			{1, "q1", 1},
+			{2, "q2", 2},
+			{3, "q3", 3},
+		}
+
+		batch.Queue("select id, description, amount from ledger order by id").Query(func(rows gaussdbgo.Rows) error {
+			rowCount := 0
+			var id int32
+			var description string
+			var amount int32
+			_, err := gaussdbgo.ForEachRow(rows, []any{&id, &description, &amount}, func() error {
+				assert.Equal(t, selectFromLedgerExpectedRows[rowCount].id, id)
+				assert.Equal(t, selectFromLedgerExpectedRows[rowCount].description, description)
+				assert.Equal(t, selectFromLedgerExpectedRows[rowCount].amount, amount)
+				rowCount++
+
+				return nil
+			})
+			assert.NoError(t, err)
+			return nil
+		})
+
+		batch.Queue("select id, description, amount from ledger order by id").Query(func(rows gaussdbgo.Rows) error {
+			rowCount := 0
+			var id int32
+			var description string
+			var amount int32
+			_, err := gaussdbgo.ForEachRow(rows, []any{&id, &description, &amount}, func() error {
+				assert.Equal(t, selectFromLedgerExpectedRows[rowCount].id, id)
+				assert.Equal(t, selectFromLedgerExpectedRows[rowCount].description, description)
+				assert.Equal(t, selectFromLedgerExpectedRows[rowCount].amount, amount)
+				rowCount++
+
+				return nil
+			})
+			assert.NoError(t, err)
+			return nil
+		})
+
+		batch.Queue("select * from ledger where false").QueryRow(func(row gaussdbgo.Row) error {
+			err := row.Scan(nil, nil, nil)
+			assert.ErrorIs(t, err, gaussdbgo.ErrNoRows)
+			return nil
+		})
+
+		batch.Queue("select sum(amount) from ledger").QueryRow(func(row gaussdbgo.Row) error {
+			var sumAmount int32
+			err := row.Scan(&sumAmount)
+			assert.NoError(t, err)
+			assert.EqualValues(t, 6, sumAmount)
+			return nil
+		})
+
+		err := conn.SendBatch(ctx, batch).Close()
+		assert.NoError(t, err)
+	})
+}
 
 // todo: GaussD8 暂时不支持 临时表Serial自增序列
 //func TestConnSendBatchMany(t *testing.T) {
