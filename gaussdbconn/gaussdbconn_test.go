@@ -2558,42 +2558,42 @@ func TestConnLargeResponseWhileWritingDoesNotDeadlock(t *testing.T) {
 	ensureConnValid(t, gaussdbConn)
 }
 
-// todo: CheckConn is deprecated, method .PID() has problem similar to TestFatalTxError
-//func TestConnCheckConn(t *testing.T) {
-//	t.Parallel()
-//
-//	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-//	defer cancel()
-//
-//	// Intentionally using TCP connection for more predictable close behavior. (Not sure if Unix domain sockets would behave subtly different.)
-//
-//	connString := os.Getenv(gaussdbgo.EnvGaussdbTestTcpConnString)
-//	if connString == "" {
-//		t.Skipf("Skipping due to missing environment variable %v", gaussdbgo.EnvGaussdbTestTcpConnString)
-//	}
-//
-//	c1, err := gaussdbconn.Connect(ctx, connString)
-//	require.NoError(t, err)
-//	defer c1.Close(ctx)
-//
-//	err = c1.CheckConn()
-//	require.NoError(t, err)
-//
-//	c2, err := gaussdbconn.Connect(ctx, connString)
-//	require.NoError(t, err)
-//	defer c2.Close(ctx)
-//
-//	_, err = c2.Exec(ctx, fmt.Sprintf("select pg_terminate_backend(%d)", c1.PID())).ReadAll()
-//	require.NoError(t, err)
-//
-//	// It may take a while for the server to kill the backend. Retry until the error is detected or the test context is
-//	// canceled.
-//	for err == nil && ctx.Err() == nil {
-//		time.Sleep(50 * time.Millisecond)
-//		err = c1.CheckConn()
-//	}
-//	require.Error(t, err)
-//}
+func TestConnCheckConn(t *testing.T) {
+	t.Skip("GaussDB does not return the correct PID")
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
+	// Intentionally using TCP connection for more predictable close behavior. (Not sure if Unix domain sockets would behave subtly different.)
+
+	connString := os.Getenv(gaussdbgo.EnvGaussdbTestTcpConnString)
+	if connString == "" {
+		t.Skipf("Skipping due to missing environment variable %v", gaussdbgo.EnvGaussdbTestTcpConnString)
+	}
+
+	c1, err := gaussdbconn.Connect(ctx, connString)
+	require.NoError(t, err)
+	defer c1.Close(ctx)
+
+	err = c1.CheckConn()
+	require.NoError(t, err)
+
+	c2, err := gaussdbconn.Connect(ctx, connString)
+	require.NoError(t, err)
+	defer c2.Close(ctx)
+
+	_, err = c2.Exec(ctx, fmt.Sprintf("select pg_terminate_backend(%d)", c1.PID())).ReadAll()
+	require.NoError(t, err)
+
+	// It may take a while for the server to kill the backend. Retry until the error is detected or the test context is
+	// canceled.
+	for err == nil && ctx.Err() == nil {
+		time.Sleep(50 * time.Millisecond)
+		err = c1.CheckConn()
+	}
+	require.Error(t, err)
+}
 
 func TestConnPing(t *testing.T) {
 	t.Parallel()
