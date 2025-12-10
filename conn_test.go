@@ -945,24 +945,24 @@ func TestConnInitTypeMap(t *testing.T) {
 	ensureConnValid(t, conn)
 }
 
-// todo GaussDB 暂时不支持 Domain域类型
-//func TestUnregisteredTypeUsableAsStringArgumentAndBaseResult(t *testing.T) {
-//	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-//	defer cancel()
-//
-//	gaussdbxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdbgo.Conn) {
-//
-//		var n uint64
-//		err := conn.QueryRow(context.Background(), "select $1::uint64", "42").Scan(&n)
-//		if err != nil {
-//			t.Fatal(err)
-//		}
-//
-//		if n != 42 {
-//			t.Fatalf("Expected n to be 42, but was %v", n)
-//		}
-//	})
-//}
+func TestUnregisteredTypeUsableAsStringArgumentAndBaseResult(t *testing.T) {
+	t.Skip("GaussDB currently does not support domain types.")
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
+	gaussdbxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdbgo.Conn) {
+
+		var n uint64
+		err := conn.QueryRow(context.Background(), "select $1::uint64", "42").Scan(&n)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if n != 42 {
+			t.Fatalf("Expected n to be 42, but was %v", n)
+		}
+	})
+}
 
 // todo GaussDB 暂时不支持 Domain域类型
 /*func TestDomainType(t *testing.T) {
