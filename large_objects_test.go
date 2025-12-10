@@ -159,7 +159,8 @@ func testLargeObjects(t *testing.T, ctx context.Context, tx gaussdbgo.Tx) {
 	}
 }
 
-/*func TestLargeObjectsMultipleTransactions(t *testing.T) {
+func TestLargeObjectsMultipleTransactions(t *testing.T) {
+	t.Skip("GaussDB currently does not support Large Objects.")
 	// We use a very short limit to test chunking logic.
 	gaussdbgo.SetMaxLargeObjectMessageLength(t, 2)
 
@@ -299,4 +300,4 @@ func testLargeObjects(t *testing.T, ctx context.Context, tx gaussdbgo.Tx) {
 	if e, ok := err.(*gaussdbconn.GaussdbError); !ok || e.Code != "42704" {
 		t.Errorf("Expected undefined_object error (42704), got %#v", err)
 	}
-}*/
+}
