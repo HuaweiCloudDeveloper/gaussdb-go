@@ -1785,7 +1785,6 @@ func TestConnCopyToSmall(t *testing.T) {
 }
 
 func TestConnCopyToLarge(t *testing.T) {
-	t.Skip("gaussdb not support.")
 	t.Parallel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
