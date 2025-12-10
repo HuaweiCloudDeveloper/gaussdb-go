@@ -749,8 +749,8 @@ func TestTxSendBatch(t *testing.T) {
 	})
 }
 
-// todo GaussDB 暂时不支持 临时表Serial自增序列
 func TestTxSendBatchRollback(t *testing.T) {
+	t.Skip("GaussDB currently does not support serial auto-increment sequences for temporary tables.")
 	t.Parallel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
