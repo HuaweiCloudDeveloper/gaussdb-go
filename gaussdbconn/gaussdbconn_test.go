@@ -1629,41 +1629,41 @@ end$$;`)
 	ensureConnValid(t, gaussdbConn)
 }
 
-// todo: LISTEN statement is not yet supported. (SQLSTATE 0A000)
-//func TestConnOnNotification(t *testing.T) {
-//	t.Parallel()
-//
-//	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-//	defer cancel()
-//
-//	config, err := gaussdbconn.ParseConfig(os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
-//	require.NoError(t, err)
-//
-//	var msg string
-//	config.OnNotification = func(c *gaussdbconn.GaussdbConn, n *gaussdbconn.Notification) {
-//		msg = n.Payload
-//	}
-//
-//	gaussdbConn, err := gaussdbconn.ConnectConfig(ctx, config)
-//	require.NoError(t, err)
-//	defer closeConn(t, gaussdbConn)
-//
-//	_, err = gaussdbConn.Exec(ctx, "listen foo").ReadAll()
-//	require.NoError(t, err)
-//
-//	notifier, err := gaussdbconn.ConnectConfig(ctx, config)
-//	require.NoError(t, err)
-//	defer closeConn(t, notifier)
-//	_, err = notifier.Exec(ctx, "notify foo, 'bar'").ReadAll()
-//	require.NoError(t, err)
-//
-//	_, err = gaussdbConn.Exec(ctx, "select 1").ReadAll()
-//	require.NoError(t, err)
-//
-//	assert.Equal(t, "bar", msg)
-//
-//	ensureConnValid(t, gaussdbConn)
-//}
+func TestConnOnNotification(t *testing.T) {
+	t.Skip("LISTEN statement is not yet supported in GaussDB")
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
+	config, err := gaussdbconn.ParseConfig(os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
+	require.NoError(t, err)
+
+	var msg string
+	config.OnNotification = func(c *gaussdbconn.GaussdbConn, n *gaussdbconn.Notification) {
+		msg = n.Payload
+	}
+
+	gaussdbConn, err := gaussdbconn.ConnectConfig(ctx, config)
+	require.NoError(t, err)
+	defer closeConn(t, gaussdbConn)
+
+	_, err = gaussdbConn.Exec(ctx, "listen foo").ReadAll()
+	require.NoError(t, err)
+
+	notifier, err := gaussdbconn.ConnectConfig(ctx, config)
+	require.NoError(t, err)
+	defer closeConn(t, notifier)
+	_, err = notifier.Exec(ctx, "notify foo, 'bar'").ReadAll()
+	require.NoError(t, err)
+
+	_, err = gaussdbConn.Exec(ctx, "select 1").ReadAll()
+	require.NoError(t, err)
+
+	assert.Equal(t, "bar", msg)
+
+	ensureConnValid(t, gaussdbConn)
+}
 
 // todo: LISTEN statement is not yet supported. (SQLSTATE 0A000)
 //func TestConnWaitForNotification(t *testing.T) {
