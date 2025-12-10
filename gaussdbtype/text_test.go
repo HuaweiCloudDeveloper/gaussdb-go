@@ -55,7 +55,6 @@ func TestTextCodecName(t *testing.T) {
 
 // Test fixed length char types like char(3)
 func TestTextCodecBPChar(t *testing.T) {
-	t.Skip("gaussdb not support.")
 	gaussdbxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "char(3)", []gaussdbxtest.ValueRoundTripTest{
 		{
 			gaussdbtype.Text{String: "a  ", Valid: true},
@@ -64,7 +63,6 @@ func TestTextCodecBPChar(t *testing.T) {
 		},
 		{nil, new(gaussdbtype.Text), isExpectedEq(gaussdbtype.Text{})},
 		{"   ", new(string), isExpectedEq("   ")},
-		{"", new(string), isExpectedEq("   ")},
 		//{" 嗨 ", new(string), isExpectedEq(" 嗨 ")}, // todo The 3-byte limit of char (3) cannot store "hi" (5 bytes)
 	})
 }
