@@ -613,8 +613,8 @@ func TestDeallocateMissingPreparedStatementStillClearsFromPreparedStatementMap(t
 	})
 }
 
-// todo GaussDB 暂时不支持 LISTEN statement、NOFITY statement
-/*func TestListenNotify(t *testing.T) {
+func TestListenNotify(t *testing.T) {
+	t.Skip("GaussDB currently does not support the LISTEN and NOTIFY statements.")
 	t.Parallel()
 
 	listener := mustConnectString(t, os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
@@ -660,7 +660,7 @@ func TestDeallocateMissingPreparedStatementStillClearsFromPreparedStatementMap(t
 	notification, err = listener.WaitForNotification(context.Background())
 	require.NoError(t, err)
 	assert.Equal(t, "chat", notification.Channel)
-}*/
+}
 
 func TestListenNotifyWhileBusyIsSafe(t *testing.T) {
 	t.Skip("GaussDB currently does not support the LISTEN and NOTIFY statements.")
