@@ -1099,8 +1099,8 @@ func TestLoadRangeType(t *testing.T) {
 	})
 }
 
-// todo GaussDB 暂时不支持 MultiRangeType多范围类型
-/*func TestLoadMultiRangeType(t *testing.T) {
+func TestLoadMultiRangeType(t *testing.T) {
+	t.Skip("GaussDB currently does not support the MultiRange type.")
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
@@ -1145,7 +1145,7 @@ func TestLoadRangeType(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, inputMultiRangeType, outputMultiRangeType)
 	})
-}*/
+}
 
 func TestStmtCacheInvalidationConn(t *testing.T) {
 	ctx := context.Background()
