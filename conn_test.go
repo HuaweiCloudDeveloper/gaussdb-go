@@ -739,39 +739,39 @@ func TestDeallocateMissingPreparedStatementStillClearsFromPreparedStatementMap(t
 	<-notifierDone
 }*/
 
-// todo: LISTEN statement is not yet supported. (SQLSTATE 0A000)
-//func TestListenNotifySelfNotification(t *testing.T) {
-//	t.Parallel()
-//
-//	conn := mustConnectString(t, os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
-//	defer closeConn(t, conn)
-//
-//	mustExec(t, conn, "listen self")
-//
-//	// Notify self and WaitForNotification immediately
-//	mustExec(t, conn, "notify self")
-//
-//	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-//	defer cancel()
-//	notification, err := conn.WaitForNotification(ctx)
-//	require.NoError(t, err)
-//	assert.Equal(t, "self", notification.Channel)
-//
-//	// Notify self and do something else before WaitForNotification
-//	mustExec(t, conn, "notify self")
-//
-//	rows, _ := conn.Query(context.Background(), "select 1")
-//	rows.Close()
-//	if rows.Err() != nil {
-//		t.Fatalf("Unexpected error on Query: %v", rows.Err())
-//	}
-//
-//	ctx, cncl := context.WithTimeout(context.Background(), time.Second)
-//	defer cncl()
-//	notification, err = conn.WaitForNotification(ctx)
-//	require.NoError(t, err)
-//	assert.Equal(t, "self", notification.Channel)
-//}
+func TestListenNotifySelfNotification(t *testing.T) {
+	t.Skip("LISTEN statement is not yet supported in GaussDB")
+	t.Parallel()
+
+	conn := mustConnectString(t, os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
+	defer closeConn(t, conn)
+
+	mustExec(t, conn, "listen self")
+
+	// Notify self and WaitForNotification immediately
+	mustExec(t, conn, "notify self")
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	notification, err := conn.WaitForNotification(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, "self", notification.Channel)
+
+	// Notify self and do something else before WaitForNotification
+	mustExec(t, conn, "notify self")
+
+	rows, _ := conn.Query(context.Background(), "select 1")
+	rows.Close()
+	if rows.Err() != nil {
+		t.Fatalf("Unexpected error on Query: %v", rows.Err())
+	}
+
+	ctx, cncl := context.WithTimeout(context.Background(), time.Second)
+	defer cncl()
+	notification, err = conn.WaitForNotification(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, "self", notification.Channel)
+}
 
 // todo: conn.GaussdbConn().PID() not return the right pid.
 //func TestFatalRxError(t *testing.T) {
