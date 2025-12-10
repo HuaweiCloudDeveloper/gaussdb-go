@@ -15,143 +15,143 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// todo: GaussD8 暂时不支持 临时表Serial自增序列
-//func TestConnSendBatch(t *testing.T) {
-//	t.Parallel()
-//
-//	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-//	defer cancel()
-//
-//	gaussdbxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdbgo.Conn) {
-//
-//		sql := `create temporary table ledger(
-//	  id serial primary key,
-//	  description varchar not null,
-//	  amount int not null
-//	);`
-//		mustExec(t, conn, sql)
-//
-//		batch := &gaussdbgo.Batch{}
-//		batch.Queue("insert into ledger(description, amount) values($1, $2)", "q1", 1)
-//		batch.Queue("insert into ledger(description, amount) values($1, $2)", "q2", 2)
-//		batch.Queue("insert into ledger(description, amount) values($1, $2)", "q3", 3)
-//		batch.Queue("select id, description, amount from ledger order by id")
-//		batch.Queue("select id, description, amount from ledger order by id")
-//		batch.Queue("select * from ledger where false")
-//		batch.Queue("select sum(amount) from ledger")
-//
-//		br := conn.SendBatch(ctx, batch)
-//
-//		ct, err := br.Exec()
-//		if err != nil {
-//			t.Error(err)
-//		}
-//		if ct.RowsAffected() != 1 {
-//			t.Errorf("ct.RowsAffected() => %v, want %v", ct.RowsAffected(), 1)
-//		}
-//
-//		ct, err = br.Exec()
-//		if err != nil {
-//			t.Error(err)
-//		}
-//		if ct.RowsAffected() != 1 {
-//			t.Errorf("ct.RowsAffected() => %v, want %v", ct.RowsAffected(), 1)
-//		}
-//
-//		ct, err = br.Exec()
-//		if err != nil {
-//			t.Error(err)
-//		}
-//		if ct.RowsAffected() != 1 {
-//			t.Errorf("ct.RowsAffected() => %v, want %v", ct.RowsAffected(), 1)
-//		}
-//
-//		selectFromLedgerExpectedRows := []struct {
-//			id          int32
-//			description string
-//			amount      int32
-//		}{
-//			{1, "q1", 1},
-//			{2, "q2", 2},
-//			{3, "q3", 3},
-//		}
-//
-//		rows, err := br.Query()
-//		if err != nil {
-//			t.Error(err)
-//		}
-//
-//		var id int32
-//		var description string
-//		var amount int32
-//		rowCount := 0
-//
-//		for rows.Next() {
-//			if rowCount >= len(selectFromLedgerExpectedRows) {
-//				t.Fatalf("got too many rows: %d", rowCount)
-//			}
-//
-//			if err := rows.Scan(&id, &description, &amount); err != nil {
-//				t.Fatalf("row %d: %v", rowCount, err)
-//			}
-//
-//			if id != selectFromLedgerExpectedRows[rowCount].id {
-//				t.Errorf("id => %v, want %v", id, selectFromLedgerExpectedRows[rowCount].id)
-//			}
-//			if description != selectFromLedgerExpectedRows[rowCount].description {
-//				t.Errorf("description => %v, want %v", description, selectFromLedgerExpectedRows[rowCount].description)
-//			}
-//			if amount != selectFromLedgerExpectedRows[rowCount].amount {
-//				t.Errorf("amount => %v, want %v", amount, selectFromLedgerExpectedRows[rowCount].amount)
-//			}
-//
-//			rowCount++
-//		}
-//
-//		if rows.Err() != nil {
-//			t.Fatal(rows.Err())
-//		}
-//
-//		rowCount = 0
-//		rows, _ = br.Query()
-//		_, err = gaussdbgo.ForEachRow(rows, []any{&id, &description, &amount}, func() error {
-//			if id != selectFromLedgerExpectedRows[rowCount].id {
-//				t.Errorf("id => %v, want %v", id, selectFromLedgerExpectedRows[rowCount].id)
-//			}
-//			if description != selectFromLedgerExpectedRows[rowCount].description {
-//				t.Errorf("description => %v, want %v", description, selectFromLedgerExpectedRows[rowCount].description)
-//			}
-//			if amount != selectFromLedgerExpectedRows[rowCount].amount {
-//				t.Errorf("amount => %v, want %v", amount, selectFromLedgerExpectedRows[rowCount].amount)
-//			}
-//
-//			rowCount++
-//
-//			return nil
-//		})
-//		if err != nil {
-//			t.Error(err)
-//		}
-//
-//		err = br.QueryRow().Scan(&id, &description, &amount)
-//		if !errors.Is(err, gaussdbgo.ErrNoRows) {
-//			t.Errorf("expected gaussdbgo.ErrNoRows but got: %v", err)
-//		}
-//
-//		err = br.QueryRow().Scan(&amount)
-//		if err != nil {
-//			t.Error(err)
-//		}
-//		if amount != 6 {
-//			t.Errorf("amount => %v, want %v", amount, 6)
-//		}
-//
-//		err = br.Close()
-//		if err != nil {
-//			t.Fatal(err)
-//		}
-//	})
-//}
+func TestConnSendBatch(t *testing.T) {
+	t.Skip("GaussDB currently does not support serial auto-increment sequences for temporary tables.")
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
+	gaussdbxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdbgo.Conn) {
+
+		sql := `create temporary table ledger(
+	  id serial primary key,
+	  description varchar not null,
+	  amount int not null
+	);`
+		mustExec(t, conn, sql)
+
+		batch := &gaussdbgo.Batch{}
+		batch.Queue("insert into ledger(description, amount) values($1, $2)", "q1", 1)
+		batch.Queue("insert into ledger(description, amount) values($1, $2)", "q2", 2)
+		batch.Queue("insert into ledger(description, amount) values($1, $2)", "q3", 3)
+		batch.Queue("select id, description, amount from ledger order by id")
+		batch.Queue("select id, description, amount from ledger order by id")
+		batch.Queue("select * from ledger where false")
+		batch.Queue("select sum(amount) from ledger")
+
+		br := conn.SendBatch(ctx, batch)
+
+		ct, err := br.Exec()
+		if err != nil {
+			t.Error(err)
+		}
+		if ct.RowsAffected() != 1 {
+			t.Errorf("ct.RowsAffected() => %v, want %v", ct.RowsAffected(), 1)
+		}
+
+		ct, err = br.Exec()
+		if err != nil {
+			t.Error(err)
+		}
+		if ct.RowsAffected() != 1 {
+			t.Errorf("ct.RowsAffected() => %v, want %v", ct.RowsAffected(), 1)
+		}
+
+		ct, err = br.Exec()
+		if err != nil {
+			t.Error(err)
+		}
+		if ct.RowsAffected() != 1 {
+			t.Errorf("ct.RowsAffected() => %v, want %v", ct.RowsAffected(), 1)
+		}
+
+		selectFromLedgerExpectedRows := []struct {
+			id          int32
+			description string
+			amount      int32
+		}{
+			{1, "q1", 1},
+			{2, "q2", 2},
+			{3, "q3", 3},
+		}
+
+		rows, err := br.Query()
+		if err != nil {
+			t.Error(err)
+		}
+
+		var id int32
+		var description string
+		var amount int32
+		rowCount := 0
+
+		for rows.Next() {
+			if rowCount >= len(selectFromLedgerExpectedRows) {
+				t.Fatalf("got too many rows: %d", rowCount)
+			}
+
+			if err := rows.Scan(&id, &description, &amount); err != nil {
+				t.Fatalf("row %d: %v", rowCount, err)
+			}
+
+			if id != selectFromLedgerExpectedRows[rowCount].id {
+				t.Errorf("id => %v, want %v", id, selectFromLedgerExpectedRows[rowCount].id)
+			}
+			if description != selectFromLedgerExpectedRows[rowCount].description {
+				t.Errorf("description => %v, want %v", description, selectFromLedgerExpectedRows[rowCount].description)
+			}
+			if amount != selectFromLedgerExpectedRows[rowCount].amount {
+				t.Errorf("amount => %v, want %v", amount, selectFromLedgerExpectedRows[rowCount].amount)
+			}
+
+			rowCount++
+		}
+
+		if rows.Err() != nil {
+			t.Fatal(rows.Err())
+		}
+
+		rowCount = 0
+		rows, _ = br.Query()
+		_, err = gaussdbgo.ForEachRow(rows, []any{&id, &description, &amount}, func() error {
+			if id != selectFromLedgerExpectedRows[rowCount].id {
+				t.Errorf("id => %v, want %v", id, selectFromLedgerExpectedRows[rowCount].id)
+			}
+			if description != selectFromLedgerExpectedRows[rowCount].description {
+				t.Errorf("description => %v, want %v", description, selectFromLedgerExpectedRows[rowCount].description)
+			}
+			if amount != selectFromLedgerExpectedRows[rowCount].amount {
+				t.Errorf("amount => %v, want %v", amount, selectFromLedgerExpectedRows[rowCount].amount)
+			}
+
+			rowCount++
+
+			return nil
+		})
+		if err != nil {
+			t.Error(err)
+		}
+
+		err = br.QueryRow().Scan(&id, &description, &amount)
+		if !errors.Is(err, gaussdbgo.ErrNoRows) {
+			t.Errorf("expected gaussdbgo.ErrNoRows but got: %v", err)
+		}
+
+		err = br.QueryRow().Scan(&amount)
+		if err != nil {
+			t.Error(err)
+		}
+		if amount != 6 {
+			t.Errorf("amount => %v, want %v", amount, 6)
+		}
+
+		err = br.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
+}
 
 // todo: GaussD8 暂时不支持 临时表Serial自增序列
 //func TestConnSendBatchQueuedQuery(t *testing.T) {
