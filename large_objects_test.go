@@ -33,6 +33,7 @@ func TestLargeObjects(t *testing.T) {
 }
 
 func TestLargeObjectsSimpleProtocol(t *testing.T) {
+	t.Skip("GaussDB currently does not support Large Objects.")
 	// We use a very short limit to test chunking logic.
 	gaussdbgo.SetMaxLargeObjectMessageLength(t, 2)
 
