@@ -1,7 +1,7 @@
 -- Create extensions and types.
 create extension if not exists hstore;
 
-create database gaussdbgo_test DBCOMPATIBILITY 'pg';
+create database gaussdbgo_test;
 
 -- Create users for different types of connections and authentication.
 create user gaussdbgo_ssl with SYSADMIN PASSWORD '{{OPENGAUSS_PASSWORD}}';

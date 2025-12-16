@@ -42,7 +42,7 @@ while [ $retry_count -lt $max_retries ]; do
     if [ $status -eq 0 ]; then
       # replace password
       sudo sed -i "s/'{{OPENGAUSS_PASSWORD}}'/'${password}'/" "${mounted_dir}/${sql_file}"
-      docker exec -i ${TTY_FLAG} "${container_name}" bash -c "su - omm -c 'gsql -U omm -c \"CREATE DATABASE gaussdbgo_test;\" -f ${mounted_dir}/${sql_file}'"
+      docker exec -i ${TTY_FLAG} "${container_name}" bash -c "su - omm -c 'gsql -U omm -f ${mounted_dir}/${sql_file}'"
       echo "Database initialization completed."
       verify_sql_created_user_connection
       exit 0
