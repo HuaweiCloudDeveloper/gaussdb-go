@@ -1,8 +1,18 @@
 package gaussdbgo_test
 
-// todo  GaussD 暂时不支持 Large Object
+import (
+	"context"
+	"io"
+	"os"
+	"testing"
+	"time"
 
-/*func TestLargeObjects(t *testing.T) {
+	gaussdbgo "github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbconn"
+)
+
+func TestLargeObjects(t *testing.T) {
+	t.Skip("GaussDB currently does not support Large Objects.")
 	// We use a very short limit to test chunking logic.
 	gaussdbgo.SetMaxLargeObjectMessageLength(t, 2)
 
@@ -20,9 +30,10 @@ package gaussdbgo_test
 	}
 
 	testLargeObjects(t, ctx, tx)
-}*/
+}
 
-/*func TestLargeObjectsSimpleProtocol(t *testing.T) {
+func TestLargeObjectsSimpleProtocol(t *testing.T) {
+	t.Skip("GaussDB currently does not support Large Objects.")
 	// We use a very short limit to test chunking logic.
 	gaussdbgo.SetMaxLargeObjectMessageLength(t, 2)
 
@@ -47,9 +58,9 @@ package gaussdbgo_test
 	}
 
 	testLargeObjects(t, ctx, tx)
-}*/
+}
 
-/*func testLargeObjects(t *testing.T, ctx context.Context, tx gaussdbgo.Tx) {
+func testLargeObjects(t *testing.T, ctx context.Context, tx gaussdbgo.Tx) {
 
 	lo := tx.LargeObjects()
 
@@ -146,9 +157,10 @@ package gaussdbgo_test
 	if e, ok := err.(*gaussdbconn.GaussdbError); !ok || e.Code != "42704" {
 		t.Errorf("Expected undefined_object error (42704), got %#v", err)
 	}
-}*/
+}
 
-/*func TestLargeObjectsMultipleTransactions(t *testing.T) {
+func TestLargeObjectsMultipleTransactions(t *testing.T) {
+	t.Skip("GaussDB currently does not support Large Objects.")
 	// We use a very short limit to test chunking logic.
 	gaussdbgo.SetMaxLargeObjectMessageLength(t, 2)
 
@@ -288,4 +300,4 @@ package gaussdbgo_test
 	if e, ok := err.(*gaussdbconn.GaussdbError); !ok || e.Code != "42704" {
 		t.Errorf("Expected undefined_object error (42704), got %#v", err)
 	}
-}*/
+}

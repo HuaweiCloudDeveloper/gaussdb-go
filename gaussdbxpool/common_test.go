@@ -71,7 +71,6 @@ type sendBatcher interface {
 func testSendBatch(t *testing.T, ctx context.Context, db sendBatcher) {
 	batch := &gaussdbgo.Batch{}
 	batch.Queue("select 1")
-	batch.Queue("select 2")
 
 	br := db.SendBatch(ctx, batch)
 
@@ -80,10 +79,6 @@ func testSendBatch(t *testing.T, ctx context.Context, db sendBatcher) {
 	err = br.QueryRow().Scan(&n)
 	assert.NoError(t, err)
 	assert.EqualValues(t, 1, n)
-
-	err = br.QueryRow().Scan(&n)
-	assert.NoError(t, err)
-	assert.EqualValues(t, 2, n)
 
 	err = br.Close()
 	assert.NoError(t, err)

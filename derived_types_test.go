@@ -1,9 +1,15 @@
 package gaussdbgo_test
 
-// todo GaussDB 暂时不支持 Domain域类型
-/*func TestCompositeCodecTranscodeWithLoadTypes(t *testing.T) {
-	skipCockroachDB(t, "Server does not support composite types (see https://github.com/cockroachdb/cockroach/issues/27792)")
+import (
+	"context"
+	"testing"
 
+	gaussdbgo "github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/stretchr/testify/require"
+)
+
+func TestCompositeCodecTranscodeWithLoadTypes(t *testing.T) {
+	t.Skip("GaussDB currently does not support domain types.")
 	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *gaussdbgo.Conn) {
 		_, err := conn.Exec(ctx, `
 drop type if exists dtype_test;
@@ -31,4 +37,4 @@ create type dtype_test as (
 		require.Equal(t, types[4].Name, "public.dtype_test")
 		require.Equal(t, types[5].Name, "dtype_test")
 	})
-}*/
+}

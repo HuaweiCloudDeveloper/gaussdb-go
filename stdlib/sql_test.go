@@ -1245,8 +1245,8 @@ func TestResetSessionHookCalled(t *testing.T) {
 	require.True(t, mockCalled)
 }
 
-// todo checkConn is deprecated, .PID() has problem similar to TestFatalTxError
-/*func TestCheckIdleConn(t *testing.T) {
+func TestCheckIdleConn(t *testing.T) {
+	t.Skip("GaussDB does not return the correct PID")
 	// stdlib/sql.go#L102, register here
 	controllerConn, err := sql.Open("gaussdb", os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
 	require.NoError(t, err)
@@ -1307,4 +1307,4 @@ func TestResetSessionHookCalled(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NotContains(t, pids, cPID)
-}*/
+}

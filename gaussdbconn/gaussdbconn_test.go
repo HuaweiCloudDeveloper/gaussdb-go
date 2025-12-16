@@ -1629,77 +1629,77 @@ end$$;`)
 	ensureConnValid(t, gaussdbConn)
 }
 
-// todo: LISTEN statement is not yet supported. (SQLSTATE 0A000)
-//func TestConnOnNotification(t *testing.T) {
-//	t.Parallel()
-//
-//	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-//	defer cancel()
-//
-//	config, err := gaussdbconn.ParseConfig(os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
-//	require.NoError(t, err)
-//
-//	var msg string
-//	config.OnNotification = func(c *gaussdbconn.GaussdbConn, n *gaussdbconn.Notification) {
-//		msg = n.Payload
-//	}
-//
-//	gaussdbConn, err := gaussdbconn.ConnectConfig(ctx, config)
-//	require.NoError(t, err)
-//	defer closeConn(t, gaussdbConn)
-//
-//	_, err = gaussdbConn.Exec(ctx, "listen foo").ReadAll()
-//	require.NoError(t, err)
-//
-//	notifier, err := gaussdbconn.ConnectConfig(ctx, config)
-//	require.NoError(t, err)
-//	defer closeConn(t, notifier)
-//	_, err = notifier.Exec(ctx, "notify foo, 'bar'").ReadAll()
-//	require.NoError(t, err)
-//
-//	_, err = gaussdbConn.Exec(ctx, "select 1").ReadAll()
-//	require.NoError(t, err)
-//
-//	assert.Equal(t, "bar", msg)
-//
-//	ensureConnValid(t, gaussdbConn)
-//}
+func TestConnOnNotification(t *testing.T) {
+	t.Skip("LISTEN statement is not yet supported in GaussDB")
+	t.Parallel()
 
-// todo: LISTEN statement is not yet supported. (SQLSTATE 0A000)
-//func TestConnWaitForNotification(t *testing.T) {
-//	t.Parallel()
-//
-//	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-//	defer cancel()
-//
-//	config, err := gaussdbconn.ParseConfig(os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
-//	require.NoError(t, err)
-//
-//	var msg string
-//	config.OnNotification = func(c *gaussdbconn.GaussdbConn, n *gaussdbconn.Notification) {
-//		msg = n.Payload
-//	}
-//
-//	gaussdbConn, err := gaussdbconn.ConnectConfig(ctx, config)
-//	require.NoError(t, err)
-//	defer closeConn(t, gaussdbConn)
-//
-//	_, err = gaussdbConn.Exec(ctx, "listen foo").ReadAll()
-//	require.NoError(t, err)
-//
-//	notifier, err := gaussdbconn.ConnectConfig(ctx, config)
-//	require.NoError(t, err)
-//	defer closeConn(t, notifier)
-//	_, err = notifier.Exec(ctx, "notify foo, 'bar'").ReadAll()
-//	require.NoError(t, err)
-//
-//	err = gaussdbConn.WaitForNotification(ctx)
-//	require.NoError(t, err)
-//
-//	assert.Equal(t, "bar", msg)
-//
-//	ensureConnValid(t, gaussdbConn)
-//}
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
+	config, err := gaussdbconn.ParseConfig(os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
+	require.NoError(t, err)
+
+	var msg string
+	config.OnNotification = func(c *gaussdbconn.GaussdbConn, n *gaussdbconn.Notification) {
+		msg = n.Payload
+	}
+
+	gaussdbConn, err := gaussdbconn.ConnectConfig(ctx, config)
+	require.NoError(t, err)
+	defer closeConn(t, gaussdbConn)
+
+	_, err = gaussdbConn.Exec(ctx, "listen foo").ReadAll()
+	require.NoError(t, err)
+
+	notifier, err := gaussdbconn.ConnectConfig(ctx, config)
+	require.NoError(t, err)
+	defer closeConn(t, notifier)
+	_, err = notifier.Exec(ctx, "notify foo, 'bar'").ReadAll()
+	require.NoError(t, err)
+
+	_, err = gaussdbConn.Exec(ctx, "select 1").ReadAll()
+	require.NoError(t, err)
+
+	assert.Equal(t, "bar", msg)
+
+	ensureConnValid(t, gaussdbConn)
+}
+
+func TestConnWaitForNotification(t *testing.T) {
+	t.Skip("LISTEN statement is not yet supported in GaussDB")
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
+	config, err := gaussdbconn.ParseConfig(os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
+	require.NoError(t, err)
+
+	var msg string
+	config.OnNotification = func(c *gaussdbconn.GaussdbConn, n *gaussdbconn.Notification) {
+		msg = n.Payload
+	}
+
+	gaussdbConn, err := gaussdbconn.ConnectConfig(ctx, config)
+	require.NoError(t, err)
+	defer closeConn(t, gaussdbConn)
+
+	_, err = gaussdbConn.Exec(ctx, "listen foo").ReadAll()
+	require.NoError(t, err)
+
+	notifier, err := gaussdbconn.ConnectConfig(ctx, config)
+	require.NoError(t, err)
+	defer closeConn(t, notifier)
+	_, err = notifier.Exec(ctx, "notify foo, 'bar'").ReadAll()
+	require.NoError(t, err)
+
+	err = gaussdbConn.WaitForNotification(ctx)
+	require.NoError(t, err)
+
+	assert.Equal(t, "bar", msg)
+
+	ensureConnValid(t, gaussdbConn)
+}
 
 func TestConnWaitForNotificationPrecanceled(t *testing.T) {
 	t.Parallel()
@@ -1770,7 +1770,7 @@ func TestConnCopyToSmall(t *testing.T) {
 	_, err = gaussdbConn.Exec(ctx, `insert into foo values (null, null, null, null, null, null, null)`).ReadAll()
 	require.NoError(t, err)
 
-	inputBytes := []byte("0\t1\t2\tabc\tefg\t2000-01-01\t{\"abc\":\"def\",\"foo\":\"bar\"}\n" +
+	inputBytes := []byte("0\t1\t2\tabc\tefg\t2000-01-01 00:00:00\t{\"abc\":\"def\",\"foo\":\"bar\"}\n" +
 		"\\N\t\\N\t\\N\t\\N\t\\N\t\\N\t\\N\n")
 
 	outputWriter := bytes.NewBuffer(make([]byte, 0, len(inputBytes)))
@@ -1811,7 +1811,7 @@ func TestConnCopyToLarge(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		_, err = gaussdbConn.Exec(ctx, `insert into foo values (0, 1, 2, 'abc', 'efg', '2000-01-01', '{"abc":"def","foo":"bar"}', 'oooo')`).ReadAll()
 		require.NoError(t, err)
-		inputBytes = append(inputBytes, "0\t1\t2\tabc\tefg\t2000-01-01\t{\"abc\":\"def\",\"foo\":\"bar\"}\t\\\\x6f6f6f6f\n"...)
+		inputBytes = append(inputBytes, "0\t1\t2\tabc\tefg\t2000-01-01 00:00:00\t{\"abc\":\"def\",\"foo\":\"bar\"}\t\\\\x6f6f6f6f\n"...)
 	}
 
 	outputWriter := bytes.NewBuffer(make([]byte, 0, len(inputBytes)))
@@ -2558,42 +2558,42 @@ func TestConnLargeResponseWhileWritingDoesNotDeadlock(t *testing.T) {
 	ensureConnValid(t, gaussdbConn)
 }
 
-// todo: CheckConn is deprecated, method .PID() has problem similar to TestFatalTxError
-//func TestConnCheckConn(t *testing.T) {
-//	t.Parallel()
-//
-//	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-//	defer cancel()
-//
-//	// Intentionally using TCP connection for more predictable close behavior. (Not sure if Unix domain sockets would behave subtly different.)
-//
-//	connString := os.Getenv(gaussdbgo.EnvGaussdbTestTcpConnString)
-//	if connString == "" {
-//		t.Skipf("Skipping due to missing environment variable %v", gaussdbgo.EnvGaussdbTestTcpConnString)
-//	}
-//
-//	c1, err := gaussdbconn.Connect(ctx, connString)
-//	require.NoError(t, err)
-//	defer c1.Close(ctx)
-//
-//	err = c1.CheckConn()
-//	require.NoError(t, err)
-//
-//	c2, err := gaussdbconn.Connect(ctx, connString)
-//	require.NoError(t, err)
-//	defer c2.Close(ctx)
-//
-//	_, err = c2.Exec(ctx, fmt.Sprintf("select pg_terminate_backend(%d)", c1.PID())).ReadAll()
-//	require.NoError(t, err)
-//
-//	// It may take a while for the server to kill the backend. Retry until the error is detected or the test context is
-//	// canceled.
-//	for err == nil && ctx.Err() == nil {
-//		time.Sleep(50 * time.Millisecond)
-//		err = c1.CheckConn()
-//	}
-//	require.Error(t, err)
-//}
+func TestConnCheckConn(t *testing.T) {
+	t.Skip("GaussDB does not return the correct PID")
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
+	// Intentionally using TCP connection for more predictable close behavior. (Not sure if Unix domain sockets would behave subtly different.)
+
+	connString := os.Getenv(gaussdbgo.EnvGaussdbTestTcpConnString)
+	if connString == "" {
+		t.Skipf("Skipping due to missing environment variable %v", gaussdbgo.EnvGaussdbTestTcpConnString)
+	}
+
+	c1, err := gaussdbconn.Connect(ctx, connString)
+	require.NoError(t, err)
+	defer c1.Close(ctx)
+
+	err = c1.CheckConn()
+	require.NoError(t, err)
+
+	c2, err := gaussdbconn.Connect(ctx, connString)
+	require.NoError(t, err)
+	defer c2.Close(ctx)
+
+	_, err = c2.Exec(ctx, fmt.Sprintf("select pg_terminate_backend(%d)", c1.PID())).ReadAll()
+	require.NoError(t, err)
+
+	// It may take a while for the server to kill the backend. Retry until the error is detected or the test context is
+	// canceled.
+	for err == nil && ctx.Err() == nil {
+		time.Sleep(50 * time.Millisecond)
+		err = c1.CheckConn()
+	}
+	require.Error(t, err)
+}
 
 func TestConnPing(t *testing.T) {
 	t.Parallel()
@@ -3187,9 +3187,11 @@ func TestPipelineFlushForRequestSeries(t *testing.T) {
 	require.Truef(t, ok, "expected PipelineSync, got: %#v", results)
 
 	pipeline.SendQueryPrepared(`ps`, [][]byte{[]byte("1")}, nil, nil)
+	pipeline.SendPipelineSync()
 	pipeline.SendQueryPrepared(`ps`, [][]byte{[]byte("2")}, nil, nil)
-	pipeline.SendFlushRequest()
+	pipeline.SendPipelineSync()
 	err = pipeline.Flush()
+
 	require.NoError(t, err)
 
 	results, err = pipeline.GetResults()
@@ -3201,6 +3203,8 @@ func TestPipelineFlushForRequestSeries(t *testing.T) {
 	require.Len(t, readResult.Rows, 1)
 	require.Len(t, readResult.Rows[0], 1)
 	require.Equal(t, "1", string(readResult.Rows[0][0]))
+	results, err = pipeline.GetResults()
+	require.NoError(t, err)
 
 	results, err = pipeline.GetResults()
 	require.NoError(t, err)
@@ -3214,18 +3218,16 @@ func TestPipelineFlushForRequestSeries(t *testing.T) {
 
 	results, err = pipeline.GetResults()
 	require.NoError(t, err)
-	require.Nil(t, results)
 
 	pipeline.SendQueryPrepared(`ps`, [][]byte{[]byte("3")}, nil, nil)
-	err = pipeline.Flush()
+	pipeline.SendPipelineSync()
 	require.NoError(t, err)
 
 	results, err = pipeline.GetResults()
 	require.NoError(t, err)
-	require.Nil(t, results)
 
 	pipeline.SendQueryPrepared(`ps`, [][]byte{[]byte("4")}, nil, nil)
-	pipeline.SendFlushRequest()
+	pipeline.SendPipelineSync()
 	err = pipeline.Flush()
 	require.NoError(t, err)
 
@@ -3238,6 +3240,8 @@ func TestPipelineFlushForRequestSeries(t *testing.T) {
 	require.Len(t, readResult.Rows, 1)
 	require.Len(t, readResult.Rows[0], 1)
 	require.Equal(t, "3", string(readResult.Rows[0][0]))
+	results, err = pipeline.GetResults()
+	require.NoError(t, err)
 
 	results, err = pipeline.GetResults()
 	require.NoError(t, err)
@@ -3251,17 +3255,16 @@ func TestPipelineFlushForRequestSeries(t *testing.T) {
 
 	results, err = pipeline.GetResults()
 	require.NoError(t, err)
-	require.Nil(t, results)
 
 	pipeline.SendQueryPrepared(`ps`, [][]byte{[]byte("5")}, nil, nil)
-	pipeline.SendFlushRequest()
+	pipeline.SendPipelineSync()
 
 	results, err = pipeline.GetResults()
 	require.NoError(t, err)
 	require.Nil(t, results)
 
 	pipeline.SendQueryPrepared(`ps`, [][]byte{[]byte("6")}, nil, nil)
-	pipeline.SendFlushRequest()
+	pipeline.SendPipelineSync()
 	err = pipeline.Flush()
 	require.NoError(t, err)
 
@@ -3274,6 +3277,8 @@ func TestPipelineFlushForRequestSeries(t *testing.T) {
 	require.Len(t, readResult.Rows, 1)
 	require.Len(t, readResult.Rows[0], 1)
 	require.Equal(t, "5", string(readResult.Rows[0][0]))
+	results, err = pipeline.GetResults()
+	require.NoError(t, err)
 
 	results, err = pipeline.GetResults()
 	require.NoError(t, err)
@@ -3287,7 +3292,6 @@ func TestPipelineFlushForRequestSeries(t *testing.T) {
 
 	results, err = pipeline.GetResults()
 	require.NoError(t, err)
-	require.Nil(t, results)
 
 	err = pipeline.Sync()
 	require.NoError(t, err)

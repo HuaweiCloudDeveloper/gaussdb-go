@@ -146,8 +146,8 @@ func TestTxCommitWhenDeferredConstraintFailure(t *testing.T) {
 	}
 }
 
-// todo GaussDB目前功能上不支持此隔离级别，等价于REPEATABLE READ (参考：https://support.huaweicloud.com/intl/zh-cn/centralized-devg-v2-gaussdb/gaussdb_42_0501.html)
-/*func TestTxCommitSerializationFailure(t *testing.T) {
+func TestTxCommitSerializationFailure(t *testing.T) {
+	t.Skip("GaussDB currently does not support the SERIALIZABLE isolation level in terms of functionality.https://support.huaweicloud.com/intl/zh-cn/centralized-devg-v2-gaussdb/gaussdb_42_0501.html")
 	t.Parallel()
 
 	c1 := mustConnectString(t, os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
@@ -198,13 +198,13 @@ func TestTxCommitWhenDeferredConstraintFailure(t *testing.T) {
 	}
 
 	err = tx2.Commit(ctx)
-	if gaussdbErr, ok := err.(*gaussdbconn.gaussdbError); !ok || gaussdbErr.Code != "40001" {
+	if gaussdbErr, ok := err.(*gaussdbconn.GaussdbError); !ok || gaussdbErr.Code != "40001" {
 		t.Fatalf("Expected serialization error 40001, got %#v", err)
 	}
 
 	ensureConnValid(t, c1)
 	ensureConnValid(t, c2)
-}*/
+}
 
 func TestTransactionSuccessfulRollback(t *testing.T) {
 	t.Parallel()

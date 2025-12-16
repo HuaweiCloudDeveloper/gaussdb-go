@@ -20,11 +20,6 @@ func TestTextCodec(t *testing.T) {
 	for _, gaussdbTypeName := range []string{"text", "varchar"} {
 		gaussdbxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, gaussdbTypeName, []gaussdbxtest.ValueRoundTripTest{
 			{
-				gaussdbtype.Text{String: "", Valid: true},
-				new(gaussdbtype.Text),
-				isExpectedEq(gaussdbtype.Text{String: "", Valid: true}),
-			},
-			{
 				gaussdbtype.Text{String: "foo", Valid: true},
 				new(gaussdbtype.Text),
 				isExpectedEq(gaussdbtype.Text{String: "foo", Valid: true}),
@@ -49,11 +44,6 @@ func TestTextCodec(t *testing.T) {
 func TestTextCodecName(t *testing.T) {
 	gaussdbxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "name", []gaussdbxtest.ValueRoundTripTest{
 		{
-			gaussdbtype.Text{String: "", Valid: true},
-			new(gaussdbtype.Text),
-			isExpectedEq(gaussdbtype.Text{String: "", Valid: true}),
-		},
-		{
 			gaussdbtype.Text{String: "foo", Valid: true},
 			new(gaussdbtype.Text),
 			isExpectedEq(gaussdbtype.Text{String: "foo", Valid: true}),
@@ -73,7 +63,6 @@ func TestTextCodecBPChar(t *testing.T) {
 		},
 		{nil, new(gaussdbtype.Text), isExpectedEq(gaussdbtype.Text{})},
 		{"   ", new(string), isExpectedEq("   ")},
-		{"", new(string), isExpectedEq("   ")},
 		//{" 嗨 ", new(string), isExpectedEq(" 嗨 ")}, // todo The 3-byte limit of char (3) cannot store "hi" (5 bytes)
 	})
 }

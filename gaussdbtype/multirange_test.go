@@ -1,8 +1,18 @@
 package gaussdbtype_test
 
-// todo: gaussdb not support multirange type
-/*func TestMultirangeCodecTranscode(t *testing.T) {
+import (
+	"context"
+	"reflect"
+	"testing"
 
+	gaussdbx "github.com/HuaweiCloudDeveloper/gaussdb-go"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbtype"
+	"github.com/HuaweiCloudDeveloper/gaussdb-go/gaussdbxtest"
+	"github.com/stretchr/testify/require"
+)
+
+func TestMultirangeCodecTranscode(t *testing.T) {
+	t.Skip("GaussDB does not support the multirange type.")
 	gaussdbxtest.RunValueRoundTripTests(context.Background(), t, defaultConnTestRunner, nil, "int4multirange", []gaussdbxtest.ValueRoundTripTest{
 		{
 			gaussdbtype.Multirange[gaussdbtype.Range[gaussdbtype.Int4]](nil),
@@ -56,11 +66,10 @@ package gaussdbtype_test
 			},
 		},
 	})
-}*/
+}
 
-// todo: gaussdb not support multirange type
-/*func TestMultirangeCodecDecodeValue(t *testing.T) {
-
+func TestMultirangeCodecDecodeValue(t *testing.T) {
+	t.Skip("GaussDB does not support the multirange type.")
 	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, _ testing.TB, conn *gaussdbx.Conn) {
 
 		for _, tt := range []struct {
@@ -102,4 +111,4 @@ package gaussdbtype_test
 			})
 		}
 	})
-}*/
+}

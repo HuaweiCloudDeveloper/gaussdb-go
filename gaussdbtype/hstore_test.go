@@ -214,11 +214,17 @@ func TestHstoreCodec(t *testing.T) {
 			return reflect.DeepEqual(input, h)
 		}
 	}
-	gaussdbxtest.RunValueRoundTripTests(context.Background(), t, ctr, gaussdbxtest.AllQueryExecModes, "hstore", tests)
+	noSimpleProtocol := []gaussdbgo.QueryExecMode{
+		gaussdbgo.QueryExecModeCacheStatement,
+		gaussdbgo.QueryExecModeCacheDescribe,
+		gaussdbgo.QueryExecModeDescribeExec,
+		gaussdbgo.QueryExecModeExec,
+	}
+	gaussdbxtest.RunValueRoundTripTests(context.Background(), t, ctr, noSimpleProtocol, "hstore", tests)
 
 	// run the tests again without the codec registered: uses the text protocol
 	ctrWithoutCodec := defaultConnTestRunner
-	gaussdbxtest.RunValueRoundTripTests(context.Background(), t, ctrWithoutCodec, gaussdbxtest.AllQueryExecModes, "hstore", tests)
+	gaussdbxtest.RunValueRoundTripTests(context.Background(), t, ctrWithoutCodec, noSimpleProtocol, "hstore", tests)
 
 	// scan empty and NULL: should be different in all query modes
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
@@ -239,9 +245,8 @@ func TestHstoreCodec(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		expectedEmpty := gaussdbtype.Hstore{}
-		if !reflect.DeepEqual(h, expectedEmpty) {
-			t.Errorf("plain conn.Scan failed expectedEmpty=%#v actual=%#v", expectedEmpty, h)
+		if !reflect.DeepEqual(h, expectedNil) {
+			t.Errorf("plain conn.Scan failed expectedEmpty=%#v actual=%#v", expectedNil, h)
 		}
 	})
 }

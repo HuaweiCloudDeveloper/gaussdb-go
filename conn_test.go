@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -613,8 +614,8 @@ func TestDeallocateMissingPreparedStatementStillClearsFromPreparedStatementMap(t
 	})
 }
 
-// todo GaussDB 暂时不支持 LISTEN statement、NOFITY statement
-/*func TestListenNotify(t *testing.T) {
+func TestListenNotify(t *testing.T) {
+	t.Skip("GaussDB currently does not support the LISTEN and NOTIFY statements.")
 	t.Parallel()
 
 	listener := mustConnectString(t, os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
@@ -660,10 +661,10 @@ func TestDeallocateMissingPreparedStatementStillClearsFromPreparedStatementMap(t
 	notification, err = listener.WaitForNotification(context.Background())
 	require.NoError(t, err)
 	assert.Equal(t, "chat", notification.Channel)
-}*/
+}
 
-// todo GaussDB 暂时不支持 LISTEN statement、NOFITY statement
-/*func TestListenNotifyWhileBusyIsSafe(t *testing.T) {
+func TestListenNotifyWhileBusyIsSafe(t *testing.T) {
+	t.Skip("GaussDB currently does not support the LISTEN and NOTIFY statements.")
 	t.Parallel()
 
 	func() {
@@ -737,107 +738,107 @@ func TestDeallocateMissingPreparedStatementStillClearsFromPreparedStatementMap(t
 
 	<-listenerDone
 	<-notifierDone
-}*/
+}
 
-// todo: LISTEN statement is not yet supported. (SQLSTATE 0A000)
-//func TestListenNotifySelfNotification(t *testing.T) {
-//	t.Parallel()
-//
-//	conn := mustConnectString(t, os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
-//	defer closeConn(t, conn)
-//
-//	mustExec(t, conn, "listen self")
-//
-//	// Notify self and WaitForNotification immediately
-//	mustExec(t, conn, "notify self")
-//
-//	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-//	defer cancel()
-//	notification, err := conn.WaitForNotification(ctx)
-//	require.NoError(t, err)
-//	assert.Equal(t, "self", notification.Channel)
-//
-//	// Notify self and do something else before WaitForNotification
-//	mustExec(t, conn, "notify self")
-//
-//	rows, _ := conn.Query(context.Background(), "select 1")
-//	rows.Close()
-//	if rows.Err() != nil {
-//		t.Fatalf("Unexpected error on Query: %v", rows.Err())
-//	}
-//
-//	ctx, cncl := context.WithTimeout(context.Background(), time.Second)
-//	defer cncl()
-//	notification, err = conn.WaitForNotification(ctx)
-//	require.NoError(t, err)
-//	assert.Equal(t, "self", notification.Channel)
-//}
+func TestListenNotifySelfNotification(t *testing.T) {
+	t.Skip("LISTEN statement is not yet supported in GaussDB")
+	t.Parallel()
 
-// todo: conn.GaussdbConn().PID() not return the right pid.
-//func TestFatalRxError(t *testing.T) {
-//	t.Parallel()
-//	envVar := os.Getenv(gaussdbgo.EnvGaussdbTestDatabase)
-//
-//	conn := mustConnectString(t, envVar)
-//	defer closeConn(t, conn)
-//
-//	var wg sync.WaitGroup
-//	wg.Add(1)
-//	go func() {
-//		defer wg.Done()
-//		var n int32
-//		var s string
-//		err := conn.QueryRow(context.Background(), "select 1::int4, pg_sleep(10)::varchar").Scan(&n, &s)
-//		gaussdbErr, ok := err.(*gaussdbconn.GaussdbError)
-//		if !(ok && gaussdbErr.Severity == "FATAL") {
-//			t.Errorf("Expected QueryRow Scan to return fatal GaussdbError, but instead received %v", err)
-//			return
-//		}
-//	}()
-//
-//	otherConn := mustConnectString(t, envVar)
-//	defer otherConn.Close(context.Background())
-//
-//	if _, err := otherConn.Exec(context.Background(), "select pg_terminate_backend($1)", conn.GaussdbConn().PID()); err != nil {
-//		t.Fatalf("Unable to kill backend GaussDB process: %v", err)
-//	}
-//
-//	wg.Wait()
-//
-//	if !conn.IsClosed() {
-//		t.Fatal("Connection should be closed")
-//	}
-//}
+	conn := mustConnectString(t, os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
+	defer closeConn(t, conn)
 
-// todo: conn.GaussdbConn().PID() not return the right pid.
-//func TestFatalTxError(t *testing.T) {
-//	t.Parallel()
-//
-//	// Run timing sensitive test many times
-//	for i := 0; i < 50; i++ {
-//		func() {
-//			conn := mustConnectString(t, os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
-//			defer closeConn(t, conn)
-//
-//			otherConn := mustConnectString(t, os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
-//			defer otherConn.Close(context.Background())
-//
-//			_, err := otherConn.Exec(context.Background(), "select pg_terminate_backend($1)", conn.GaussdbConn().PID())
-//			if err != nil {
-//				t.Fatalf("Unable to kill backend GaussDB process: %v", err)
-//			}
-//
-//			err = conn.QueryRow(context.Background(), "select 1").Scan(nil)
-//			if err == nil {
-//				t.Fatal("Expected error but none occurred")
-//			}
-//
-//			if !conn.IsClosed() {
-//				t.Fatalf("Connection should be closed but isn't. Previous Query err: %v", err)
-//			}
-//		}()
-//	}
-//}
+	mustExec(t, conn, "listen self")
+
+	// Notify self and WaitForNotification immediately
+	mustExec(t, conn, "notify self")
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	notification, err := conn.WaitForNotification(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, "self", notification.Channel)
+
+	// Notify self and do something else before WaitForNotification
+	mustExec(t, conn, "notify self")
+
+	rows, _ := conn.Query(context.Background(), "select 1")
+	rows.Close()
+	if rows.Err() != nil {
+		t.Fatalf("Unexpected error on Query: %v", rows.Err())
+	}
+
+	ctx, cncl := context.WithTimeout(context.Background(), time.Second)
+	defer cncl()
+	notification, err = conn.WaitForNotification(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, "self", notification.Channel)
+}
+
+func TestFatalRxError(t *testing.T) {
+	t.Skip("GaussDB does not return the correct PID")
+	t.Parallel()
+	envVar := os.Getenv(gaussdbgo.EnvGaussdbTestDatabase)
+
+	conn := mustConnectString(t, envVar)
+	defer closeConn(t, conn)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var n int32
+		var s string
+		err := conn.QueryRow(context.Background(), "select 1::int4, pg_sleep(10)::varchar").Scan(&n, &s)
+		gaussdbErr, ok := err.(*gaussdbconn.GaussdbError)
+		if !(ok && gaussdbErr.Severity == "FATAL") {
+			t.Errorf("Expected QueryRow Scan to return fatal GaussdbError, but instead received %v", err)
+			return
+		}
+	}()
+
+	otherConn := mustConnectString(t, envVar)
+	defer otherConn.Close(context.Background())
+
+	if _, err := otherConn.Exec(context.Background(), "select pg_terminate_backend($1)", conn.GaussdbConn().PID()); err != nil {
+		t.Fatalf("Unable to kill backend GaussDB process: %v", err)
+	}
+
+	wg.Wait()
+
+	if !conn.IsClosed() {
+		t.Fatal("Connection should be closed")
+	}
+}
+
+func TestFatalTxError(t *testing.T) {
+	t.Skip("GaussDB does not return the correct PID")
+	t.Parallel()
+
+	// Run timing sensitive test many times
+	for i := 0; i < 50; i++ {
+		func() {
+			conn := mustConnectString(t, os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
+			defer closeConn(t, conn)
+
+			otherConn := mustConnectString(t, os.Getenv(gaussdbgo.EnvGaussdbTestDatabase))
+			defer otherConn.Close(context.Background())
+
+			_, err := otherConn.Exec(context.Background(), "select pg_terminate_backend($1)", conn.GaussdbConn().PID())
+			if err != nil {
+				t.Fatalf("Unable to kill backend GaussDB process: %v", err)
+			}
+
+			err = conn.QueryRow(context.Background(), "select 1").Scan(nil)
+			if err == nil {
+				t.Fatal("Expected error but none occurred")
+			}
+
+			if !conn.IsClosed() {
+				t.Fatalf("Connection should be closed but isn't. Previous Query err: %v", err)
+			}
+		}()
+	}
+}
 
 func TestInsertBoolArray(t *testing.T) {
 	t.Parallel()
@@ -944,27 +945,27 @@ func TestConnInitTypeMap(t *testing.T) {
 	ensureConnValid(t, conn)
 }
 
-// todo GaussDB 暂时不支持 Domain域类型
-//func TestUnregisteredTypeUsableAsStringArgumentAndBaseResult(t *testing.T) {
-//	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
-//	defer cancel()
-//
-//	gaussdbxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdbgo.Conn) {
-//
-//		var n uint64
-//		err := conn.QueryRow(context.Background(), "select $1::uint64", "42").Scan(&n)
-//		if err != nil {
-//			t.Fatal(err)
-//		}
-//
-//		if n != 42 {
-//			t.Fatalf("Expected n to be 42, but was %v", n)
-//		}
-//	})
-//}
+func TestUnregisteredTypeUsableAsStringArgumentAndBaseResult(t *testing.T) {
+	t.Skip("GaussDB currently does not support domain types.")
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
 
-// todo GaussDB 暂时不支持 Domain域类型
-/*func TestDomainType(t *testing.T) {
+	gaussdbxtest.RunWithQueryExecModes(ctx, t, defaultConnTestRunner, nil, func(ctx context.Context, t testing.TB, conn *gaussdbgo.Conn) {
+
+		var n uint64
+		err := conn.QueryRow(context.Background(), "select $1::uint64", "42").Scan(&n)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if n != 42 {
+			t.Fatalf("Expected n to be 42, but was %v", n)
+		}
+	})
+}
+
+func TestDomainType(t *testing.T) {
+	t.Skip("GaussDB currently does not support domain types.")
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
@@ -998,7 +999,7 @@ func TestConnInitTypeMap(t *testing.T) {
 			t.Fatalf("Expected n to be 7, but was %v", n)
 		}
 	})
-}*/
+}
 
 func TestLoadTypeSameNameInDifferentSchemas(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
@@ -1098,8 +1099,8 @@ func TestLoadRangeType(t *testing.T) {
 	})
 }
 
-// todo GaussDB 暂时不支持 MultiRangeType多范围类型
-/*func TestLoadMultiRangeType(t *testing.T) {
+func TestLoadMultiRangeType(t *testing.T) {
+	t.Skip("GaussDB currently does not support the MultiRange type.")
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
@@ -1144,7 +1145,7 @@ func TestLoadRangeType(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, inputMultiRangeType, outputMultiRangeType)
 	})
-}*/
+}
 
 func TestStmtCacheInvalidationConn(t *testing.T) {
 	ctx := context.Background()

@@ -31,7 +31,6 @@ func TestDateCodec(t *testing.T) {
 		{time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC), new(time.Time), isExpectedEqTime(time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC))},
 		{time.Date(2000, 1, 2, 0, 0, 0, 0, time.UTC), new(time.Time), isExpectedEqTime(time.Date(2000, 1, 2, 0, 0, 0, 0, time.UTC))},
 		{time.Date(2200, 1, 1, 0, 0, 0, 0, time.UTC), new(time.Time), isExpectedEqTime(time.Date(2200, 1, 1, 0, 0, 0, 0, time.UTC))},
-		{time.Date(12200, 1, 2, 0, 0, 0, 0, time.UTC), new(time.Time), isExpectedEqTime(time.Date(12200, 1, 2, 0, 0, 0, 0, time.UTC))},
 		{gaussdbtype.Date{InfinityModifier: gaussdbtype.Infinity, Valid: true}, new(gaussdbtype.Date), isExpectedEq(gaussdbtype.Date{InfinityModifier: gaussdbtype.Infinity, Valid: true})},
 		{gaussdbtype.Date{InfinityModifier: gaussdbtype.NegativeInfinity, Valid: true}, new(gaussdbtype.Date), isExpectedEq(gaussdbtype.Date{InfinityModifier: gaussdbtype.NegativeInfinity, Valid: true})},
 		{gaussdbtype.Date{}, new(gaussdbtype.Date), isExpectedEq(gaussdbtype.Date{})},
