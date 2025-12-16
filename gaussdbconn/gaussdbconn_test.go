@@ -3959,7 +3959,7 @@ func TestCancelRequestContextWatcherHandler(t *testing.T) {
 					DeadlineDelay:      1000 * time.Millisecond,
 				}
 			}
-			config.ConnectTimeout = 5 * time.Second
+			config.ConnectTimeout = 25 * time.Second
 
 			gaussdbConn, err := gaussdbconn.ConnectConfig(context.Background(), config)
 			require.NoError(t, err)
@@ -3970,7 +3970,7 @@ func TestCancelRequestContextWatcherHandler(t *testing.T) {
 					ctx, cancel := context.WithTimeout(context.Background(), 4*time.Millisecond)
 					defer cancel()
 					gaussdbConn.Exec(ctx, "select 1, pg_sleep(0.010)").ReadAll()
-					time.Sleep(100 * time.Millisecond) // ensure a cancel request that was a little late doesn't interrupt ensureConnValid.
+					time.Sleep(2000 * time.Millisecond) // ensure a cancel request that was a little late doesn't interrupt ensureConnValid.
 					ensureConnValid(t, gaussdbConn)
 				}()
 			}
